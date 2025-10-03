@@ -1,0 +1,9 @@
+{
+  "name": "@trainu/eslint-config",
+  "version": "0.0.1",
+  "private": false,
+  "main": "index.js",
+  "peerDependencies": {
+    "eslint": ">=8"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "trainu",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "pnpm -C apps/web dev",
+    "dev:agent": "pnpm -C apps/agent dev",
+    "lint": "eslint .",
+    "typecheck": "tsc -b"
+  }
+}

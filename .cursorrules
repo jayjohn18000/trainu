@@ -1,0 +1,57 @@
+# .cursorrules
+
+## Project North Star
+- This is the **interim TrainU app**: authenticated dashboards + public trainer directory.
+- **Go High Level (GHL)** is the operational source of truth (leads, calendars, messages, offers/payments).
+- **Supabase** is product data (profiles, programs, sessions, goals, files) and agent telemetry.
+- Do not add end-user AI features yet; AI is for **PocketFlow ticket automation** only.
+
+## Always Load This Context
+Before answering or editing code, read these files (summaries allowed):
+- `README.md`, `ARCHITECTURE.md`, `API_CONTRACTS.md`, `CONFIG.md`, `OBSERVABILITY.md`, `ERRORS.md`, `ROADMAP.md`
+- `RUNBOOKS/LocalDev.md`, `RUNBOOKS/Troubleshooting.md`, `RUNBOOKS/ServiceInventory.md`
+- `prompts/MASTER_PROMPT.md`, `prompts/TASK_TEMPLATE.md`
+- `infra/supabase/schema.sql`
+- `apps/web/lib/ghl.ts`, `apps/web/app/api/webhooks/ghl/route.ts`
+- `apps/web/lib/goals.ts`, `apps/web/lib/auth.ts`
+- `apps/agent/src/flows/ticket_flow.ts`, `apps/agent/src/logger.ts`
+
+## Change Policy
+- **Never** hardcode secrets; use envs and update `.env.example` if a new var is required (with a one-line comment).
+- Keep all **GHL** calls inside `apps/web/lib/ghl.ts`. If a new endpoint is needed, add a typed helper there.
+- Webhook handlers must be **idempotent** and write to `webhook_events` first; then fan-out to tables.
+- If you change an API shape or route: update `API_CONTRACTS.md` in the same PR.
+
+## PocketFlow / Agent Workflow
+For any non-trivial change, follow this shape in PR description and comments:
+1) **PLAN** – bullet steps, files to touch, acceptance checks.
+2) **DIFF** – concise unified patch; explain risky sections.
+3) **TEST** – commands to run (typecheck/lint/dev) and expected outcomes.
+4) **RISKS** – likely failures + rollbacks.
+- Branch names: `pf/<ticketId>-<slug>`. Commits must include `[PF:<ticketId>]`.
+- Emit structured logs via `agent_events` (no PII; redact phone/email/tokens).
+
+## Frontend Rules
+- Next.js App Router with RSC; prefer **server actions** for DB/write ops.
+- Keep UI **spacious** (cards, breathing room). Tailwind; avoid inline styles.
+- Capture key events with PostHog: auth, directory search, profile view, book CTA, upload, template-apply.
+
+## Backend Rules
+- Supabase: aim for simple SQL and views (`v_goal_progress`) for computed data.
+- Add RLS policies when exposing new tables to the client.
+- All external fetches must check `res.ok` and throw with a **brief** error.
+
+## Goals & Progress
+- Use `goals` + `goal_entries` and `v_goal_progress`. If adding a new metric, keep unit + baseline semantics consistent.
+
+## Error & Observability
+- Use Sentry in FE/BE; include a stable fingerprint for recurring issues.
+- If you add a retry/backoff, document it in `OBSERVABILITY.md`.
+
+## Guardrails / Anti-patterns
+- No dual booking sources in v0 (exclude Calendly).
+- Don’t leak PII in logs or analytics.
+- Don’t couple UI directly to GHL responses—go through `ghl.ts`.
+
+## When in Doubt
+- Prefer opening a **PocketFlow ticket** with PLAN over ad-hoc large edits.

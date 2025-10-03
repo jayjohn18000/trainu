@@ -1,0 +1,12 @@
+name: No Mocks Guard
+on: [pull_request]
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fail on committed secrets/mocks
+        run: |
+          if grep -R "API_KEY\|SECRET\|MOCK_TOKEN" -n . ; then
+            echo "Found forbidden tokens." && exit 1
+          fi

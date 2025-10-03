@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "apps/web/next.config.mjs", "use": "@vercel/next" }
+  ],
+  "env": {
+    "NEXT_PUBLIC_POSTHOG_HOST": "https://us.i.posthog.com"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "name": "@trainu/types",
+  "version": "0.0.1",
+  "private": false,
+  "types": "dist/index.d.ts",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  }
+}

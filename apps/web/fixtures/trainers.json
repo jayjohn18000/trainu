@@ -1,0 +1,18 @@
+[
+  {
+    "id": "1",
+    "name": "Sarah Chen",
+    "slug": "sarah-chen",
+    "specialties": ["Strength Training", "Nutrition"],
+    "rating": 4.9,
+    "avatarUrl": "/placeholder.svg"
+  },
+  {
+    "id": "2", 
+    "name": "Marcus Rodriguez",
+    "slug": "marcus-rodriguez",
+    "specialties": ["CrossFit", "HIIT"],
+    "rating": 4.8,
+    "avatarUrl": "/placeholder.svg"
+  }
+]

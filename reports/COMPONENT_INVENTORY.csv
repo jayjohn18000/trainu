@@ -1,0 +1,100 @@
+Name,Path,External Lib?,Props Summary,Used On Routes
+AppLayout,trainu-grow-connect-main/src/components/AppLayout.tsx,No,"children: React.ReactNode",All protected routes
+TabNavigation,trainu-grow-connect-main/src/components/TabNavigation.tsx,No,"isMobile?: boolean, onNavigate?: (path: string) => void",All protected routes
+RoleSwitcher,trainu-grow-connect-main/src/components/RoleSwitcher.tsx,No,None,All protected routes
+KPICard,trainu-grow-connect-main/src/components/KPICard.tsx,No,"title: string, value: string, subtitle?: string, icon?: Icon, trend?: Trend, onClick?: () => void",Dashboard routes
+MetricsChart,trainu-grow-connect-main/src/components/MetricsChart.tsx,No,None,Dashboard routes
+ErrorBoundary,trainu-grow-connect-main/src/components/system/ErrorBoundary.tsx,No,None,All routes
+ScreenReaderOnly,trainu-grow-connect-main/src/components/system/ScreenReaderOnly.tsx,No,"children: React.ReactNode, as?: React.ElementType",All routes
+BookingWizard,trainu-grow-connect-main/src/components/booking/BookingWizard.tsx,No,"open: boolean, onOpenChange: (open: boolean) => void",TrainerProfile
+SessionTypeStep,trainu-grow-connect-main/src/components/booking/SessionTypeStep.tsx,No,"onNext: () => void, onSelect: (type: string) => void, selected?: string",BookingWizard
+DateTimeStep,trainu-grow-connect-main/src/components/booking/DateTimeStep.tsx,No,"onNext: () => void, onBack: () => void, onSelect: (date: Date, time: string) => void, selectedDate?: Date, selectedTime?: string",BookingWizard
+PaymentStep,trainu-grow-connect-main/src/components/booking/PaymentStep.tsx,No,"onNext: () => void, onBack: () => void, onSelect: (method: string) => void, selectedMethod?: string",BookingWizard
+ReviewStep,trainu-grow-connect-main/src/components/booking/ReviewStep.tsx,No,"onNext: () => void, onBack: () => void, bookingData: BookingData",BookingWizard
+SuccessStep,trainu-grow-connect-main/src/components/booking/SuccessStep.tsx,No,"bookingData: BookingData, onClose: () => void",BookingWizard
+RescheduleModal,trainu-grow-connect-main/src/components/booking/RescheduleModal.tsx,No,"open: boolean, onOpenChange: (open: boolean) => void, session: Session, onSuccess: () => void",Calendar
+CancelModal,trainu-grow-connect-main/src/components/booking/CancelModal.tsx,No,"open: boolean, onOpenChange: (open: boolean) => void, session: Session, onSuccess: () => void",Calendar
+AvailabilityDialog,trainu-grow-connect-main/src/components/calendar/AvailabilityDialog.tsx,No,"open: boolean, onOpenChange: (open: boolean) => void, trainerId: string",TrainerDashboard
+AvailabilityEditor,trainu-grow-connect-main/src/components/calendar/AvailabilityEditor.tsx,No,"trainerId: string, rules: AvailabilityRule[], onUpdate: (rules: AvailabilityRule[]) => void",AvailabilityDialog
+AvailabilityExceptions,trainu-grow-connect-main/src/components/calendar/AvailabilityExceptions.tsx,No,"trainerId: string, exceptions: Exception[], onUpdate: (exceptions: Exception[]) => void",AvailabilityDialog
+CalendarGrid,trainu-grow-connect-main/src/components/calendar/CalendarGrid.tsx,No,"selectedDate: Date, sessions: Session[], onDateSelect: (date: Date) => void, onMonthChange: (date: Date) => void",Calendar
+SessionList,trainu-grow-connect-main/src/components/calendar/SessionList.tsx,No,"sessions: Session[], onEdit: (session: Session) => void, onCancel: (session: Session) => void",Calendar
+ClientDetailModal,trainu-grow-connect-main/src/components/clients/ClientDetailModal.tsx,No,"client: Client, open: boolean, onOpenChange: (open: boolean) => void",Clients
+ClientNotes,trainu-grow-connect-main/src/components/clients/ClientNotes.tsx,No,"clientId: string",ClientDetailModal
+ClientProgressChart,trainu-grow-connect-main/src/components/clients/ClientProgressChart.tsx,No,"clientId: string",ClientDetailModal
+ProgramAssignment,trainu-grow-connect-main/src/components/clients/ProgramAssignment.tsx,No,"clientId: string, currentProgram?: Program",ClientDetailModal
+SessionHistory,trainu-grow-connect-main/src/components/clients/SessionHistory.tsx,No,"clientId: string",ClientDetailModal
+GroupDetailModal,trainu-grow-connect-main/src/components/community/GroupDetailModal.tsx,No,"group: Group, open: boolean, onOpenChange: (open: boolean) => void",CommunityGroups
+PersonProfileModal,trainu-grow-connect-main/src/components/community/PersonProfileModal.tsx,No,"person: Person, open: boolean, onOpenChange: (open: boolean) => void",CommunityPeople
+ChatWindow,trainu-grow-connect-main/src/components/messages/ChatWindow.tsx,No,"conversation: Conversation, messages: Message[], currentUserId: string, onSendMessage: (message: string) => void",Messages
+ConversationList,trainu-grow-connect-main/src/components/messages/ConversationList.tsx,No,"conversations: Conversation[], selectedId?: string, onSelect: (id: string) => void",Messages
+MessageBubble,trainu-grow-connect-main/src/components/messages/MessageBubble.tsx,No,"message: Message, isOwn: boolean, avatar?: string",ChatWindow
+MessageInput,trainu-grow-connect-main/src/components/messages/MessageInput.tsx,No,"onSend: (message: string) => void",ChatWindow
+MeasurementsTab,trainu-grow-connect-main/src/components/progress/MeasurementsTab.tsx,No,None,Progress
+PersonalRecordsTab,trainu-grow-connect-main/src/components/progress/PersonalRecordsTab.tsx,No,None,Progress
+ProgressPhotosTab,trainu-grow-connect-main/src/components/progress/ProgressPhotosTab.tsx,No,None,Progress
+ClientCardSkeleton,trainu-grow-connect-main/src/components/skeletons/ClientCardSkeleton.tsx,No,None,Clients
+ConversationSkeleton,trainu-grow-connect-main/src/components/skeletons/ConversationSkeleton.tsx,No,None,Messages
+EventCardSkeleton,trainu-grow-connect-main/src/components/skeletons/EventCardSkeleton.tsx,No,None,CommunityEvents
+ProgramCardSkeleton,trainu-grow-connect-main/src/components/skeletons/ProgramCardSkeleton.tsx,No,None,Programs
+ExerciseRow,trainu-grow-connect-main/src/components/workout/ExerciseRow.tsx,No,"exercise: Exercise, onUpdate: (exercise: Exercise) => void, onAddSet: () => void",WorkoutLogger
+RestTimer,trainu-grow-connect-main/src/components/workout/RestTimer.tsx,No,"open: boolean, onOpenChange: (open: boolean) => void",WorkoutLogger
+WorkoutSummary,trainu-grow-connect-main/src/components/workout/WorkoutSummary.tsx,No,"exercises: Exercise[], startTime: Date, onSave: () => void, onDiscard: () => void",WorkoutLogger
+DirectoryGrid,trainu-grow-connect-main/src/ui/directory/DirectoryGrid.tsx,No,None,Directory
+DirectoryView,trainu-grow-connect-main/src/ui/directory/DirectoryView.tsx,No,None,Directory
+TrainerCard,trainu-grow-connect-main/src/ui/directory/TrainerCard.tsx,No,None,Directory
+TrainerProfileView,trainu-grow-connect-main/src/ui/trainer/TrainerProfileView.tsx,No,None,TrainerProfile
+DirectoryPreview,trainu-grow-connect-main/src/views/DirectoryPreview.tsx,No,None,Directory
+TrainerProfilePreview,trainu-grow-connect-main/src/views/TrainerProfilePreview.tsx,No,None,TrainerProfile
+Accordion,trainu-grow-connect-main/src/components/ui/accordion.tsx,Yes (Radix),"type?: 'single' | 'multiple', collapsible?: boolean, children: React.ReactNode",Collapsible content
+AlertDialog,trainu-grow-connect-main/src/components/ui/alert-dialog.tsx,Yes (Radix),"open?: boolean, onOpenChange?: (open: boolean) => void, children: React.ReactNode",Confirmations
+Alert,trainu-grow-connect-main/src/components/ui/alert.tsx,Yes (Radix),"variant?: 'default' | 'destructive', children: React.ReactNode",Notifications
+AspectRatio,trainu-grow-connect-main/src/components/ui/aspect-ratio.tsx,Yes (Radix),"ratio?: number, children: React.ReactNode",Media containers
+Avatar,trainu-grow-connect-main/src/components/ui/avatar.tsx,Yes (Radix),"src?: string, alt?: string, fallback?: string",Profiles
+Badge,trainu-grow-connect-main/src/components/ui/badge.tsx,Yes (Radix),"variant?: 'default' | 'secondary' | 'destructive' | 'outline', children: React.ReactNode",Status indicators
+Breadcrumb,trainu-grow-connect-main/src/components/ui/breadcrumb.tsx,Yes (Radix),None,Navigation
+Button,trainu-grow-connect-main/src/components/ui/button.tsx,Yes (Radix),"variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link', size?: 'default' | 'sm' | 'lg' | 'icon', children: React.ReactNode",All routes
+Calendar,trainu-grow-connect-main/src/components/ui/calendar.tsx,Yes (Radix),"selected?: Date, onSelect?: (date: Date) => void",Booking, Calendar
+Card,trainu-grow-connect-main/src/components/ui/card.tsx,Yes (Radix),"children: React.ReactNode",All routes
+Carousel,trainu-grow-connect-main/src/components/ui/carousel.tsx,Yes (Embla),"orientation?: 'horizontal' | 'vertical', children: React.ReactNode",Image galleries
+Chart,trainu-grow-connect-main/src/components/ui/chart.tsx,Yes (Recharts),"data: any[], children: React.ReactNode",Analytics
+Checkbox,trainu-grow-connect-main/src/components/ui/checkbox.tsx,Yes (Radix),"checked?: boolean, onCheckedChange?: (checked: boolean) => void",Forms
+Collapsible,trainu-grow-connect-main/src/components/ui/collapsible.tsx,Yes (Radix),"open?: boolean, onOpenChange?: (open: boolean) => void, children: React.ReactNode",Collapsible content
+Command,trainu-grow-connect-main/src/components/ui/command.tsx,Yes (cmdk),"placeholder?: string, children: React.ReactNode",Search/Command palettes
+ContextMenu,trainu-grow-connect-main/src/components/ui/context-menu.tsx,Yes (Radix),"children: React.ReactNode",Right-click menus
+Dialog,trainu-grow-connect-main/src/components/ui/dialog.tsx,Yes (Radix),"open?: boolean, onOpenChange?: (open: boolean) => void, children: React.ReactNode",Modals
+Drawer,trainu-grow-connect-main/src/components/ui/drawer.tsx,Yes (vaul),"open?: boolean, onOpenChange?: (open: boolean) => void, children: React.ReactNode",Mobile modals
+DropdownMenu,trainu-grow-connect-main/src/components/ui/dropdown-menu.tsx,Yes (Radix),"children: React.ReactNode",Action menus
+EmptyState,trainu-grow-connect-main/src/components/ui/empty-state.tsx,No,"icon?: Icon, title: string, description: string, action?: React.ReactNode",Empty lists
+FocusTrap,trainu-grow-connect-main/src/components/ui/focus-trap.tsx,No,"children: React.ReactNode, enabled?: boolean, restoreFocus?: boolean",Modals
+Form,trainu-grow-connect-main/src/components/ui/form.tsx,Yes (React Hook Form),"onSubmit: (data: any) => void, children: React.ReactNode",Forms
+HoverCard,trainu-grow-connect-main/src/components/ui/hover-card.tsx,Yes (Radix),"children: React.ReactNode",Tooltips
+InputOtp,trainu-grow-connect-main/src/components/ui/input-otp.tsx,Yes (input-otp),"value?: string, onChange?: (value: string) => void",OTP inputs
+Input,trainu-grow-connect-main/src/components/ui/input.tsx,Yes (Radix),"type?: string, placeholder?: string, value?: string, onChange?: (e: ChangeEvent) => void",Forms
+Label,trainu-grow-connect-main/src/components/ui/label.tsx,Yes (Radix),"children: React.ReactNode",Forms
+Menubar,trainu-grow-connect-main/src/components/ui/menubar.tsx,Yes (Radix),"children: React.ReactNode",Navigation bars
+NavigationMenu,trainu-grow-connect-main/src/components/ui/navigation-menu.tsx,Yes (Radix),"children: React.ReactNode",Navigation
+Pagination,trainu-grow-connect-main/src/components/ui/pagination.tsx,Yes (Radix),"pageCount: number, onPageChange?: (page: number) => void",Data tables
+Popover,trainu-grow-connect-main/src/components/ui/popover.tsx,Yes (Radix),"open?: boolean, onOpenChange?: (open: boolean) => void, children: React.ReactNode",Floating content
+Progress,trainu-grow-connect-main/src/components/ui/progress.tsx,Yes (Radix),"value?: number, max?: number",Progress indicators
+RadioGroup,trainu-grow-connect-main/src/components/ui/radio-group.tsx,Yes (Radix),"value?: string, onValueChange?: (value: string) => void, children: React.ReactNode",Forms
+Resizable,trainu-grow-connect-main/src/components/ui/resizable.tsx,Yes (react-resizable-panels),"children: React.ReactNode",Resizable layouts
+ScrollArea,trainu-grow-connect-main/src/components/ui/scroll-area.tsx,Yes (Radix),"children: React.ReactNode",Scrollable content
+SelectWithSearch,trainu-grow-connect-main/src/components/ui/select-with-search.tsx,No,Enhanced select with search,Advanced forms
+Select,trainu-grow-connect-main/src/components/ui/select.tsx,Yes (Radix),"value?: string, onValueChange?: (value: string) => void, children: React.ReactNode",Forms
+Separator,trainu-grow-connect-main/src/components/ui/separator.tsx,Yes (Radix),"orientation?: 'horizontal' | 'vertical'",Visual separators
+Sheet,trainu-grow-connect-main/src/components/ui/sheet.tsx,Yes (Radix),"open?: boolean, onOpenChange?: (open: boolean) => void, children: React.ReactNode",Mobile layouts
+Sidebar,trainu-grow-connect-main/src/components/ui/sidebar.tsx,Yes (Radix),"children: React.ReactNode",Layout sidebars
+Skeleton,trainu-grow-connect-main/src/components/ui/skeleton.tsx,Yes (Radix),"className?: string",Loading states
+Slider,trainu-grow-connect-main/src/components/ui/slider.tsx,Yes (Radix),"value?: number[], onValueChange?: (value: number[]) => void",Range inputs
+Sonner,trainu-grow-connect-main/src/components/ui/sonner.tsx,Yes (sonner),"position?: 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right'",Toasts
+Switch,trainu-grow-connect-main/src/components/ui/switch.tsx,Yes (Radix),"checked?: boolean, onCheckedChange?: (checked: boolean) => void",Toggle controls
+Table,trainu-grow-connect-main/src/components/ui/table.tsx,Yes (Radix),"children: React.ReactNode",Data display
+Tabs,trainu-grow-connect-main/src/components/ui/tabs.tsx,Yes (Radix),"defaultValue?: string, children: React.ReactNode",Settings, Progress
+Textarea,trainu-grow-connect-main/src/components/ui/textarea.tsx,Yes (Radix),"placeholder?: string, value?: string, onChange?: (e: ChangeEvent) => void",Forms
+Toast,trainu-grow-connect-main/src/components/ui/toast.tsx,Yes (Radix),"title?: string, description?: string, action?: React.ReactNode",Notifications
+Toaster,trainu-grow-connect-main/src/components/ui/toaster.tsx,Yes (Radix),None,Global
+Toggle,trainu-grow-connect-main/src/components/ui/toggle.tsx,Yes (Radix),"pressed?: boolean, onPressedChange?: (pressed: boolean) => void, children: React.ReactNode",Toggle buttons
+ToggleGroup,trainu-grow-connect-main/src/components/ui/toggle-group.tsx,Yes (Radix),"type?: 'single' | 'multiple', value?: string | string[], onValueChange?: (value: string | string[]) => void, children: React.ReactNode",Toggle groups
+Tooltip,trainu-grow-connect-main/src/components/ui/tooltip.tsx,Yes (Radix),"content?: string, children: React.ReactNode",Hover information
+UseToast,trainu-grow-connect-main/src/components/ui/use-toast.ts,No,"toast function for notifications",Global

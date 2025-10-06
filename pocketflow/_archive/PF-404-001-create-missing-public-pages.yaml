@@ -1,0 +1,66 @@
+id: PF-404-001
+title: Create stub pages for missing public routes
+type: task
+priority: P2
+status: completed
+created: 2025-10-06
+assignee: ai-agent
+completed: 2025-10-06
+
+description: |
+  Multiple public-facing pages were linked from the homepage and footer but didn't
+  exist, resulting in 404 errors. These pages are referenced but not implemented yet.
+
+reproduction_steps:
+  - From homepage, click "Become a Trainer" → 404
+  - From homepage, click "Book a Demo" → 404
+  - From footer, click "About" → 404
+  - From footer, click "Contact" → 404
+  - From footer, click "Privacy Policy" → 404
+  - From footer, click "Terms of Service" → 404
+
+missing_routes:
+  - /become-a-trainer
+  - /book
+  - /about
+  - /contact
+  - /privacy
+  - /terms
+
+proposed_fix: |
+  Create professional "under construction" stub pages for each missing route.
+  Each page should include:
+  - Clear messaging that the page is under construction
+  - Brief description of what will be there
+  - Link back to home
+  - PocketFlow ticket reference for tracking
+
+acceptance_criteria:
+  - ✅ All 6 pages created and accessible
+  - ✅ No 404 errors when navigating from homepage/footer
+  - ✅ Each page has "under construction" messaging
+  - ✅ Each page includes "Back to Home" button
+  - ✅ Pages use PublicLayout (header + footer)
+  - ✅ Professional design matching site branding
+  - ✅ PocketFlow ticket references included
+
+files_affected:
+  - apps/web/app/(public)/become-a-trainer/page.tsx (created)
+  - apps/web/app/(public)/book/page.tsx (created)
+  - apps/web/app/(public)/about/page.tsx (created)
+  - apps/web/app/(public)/contact/page.tsx (created)
+  - apps/web/app/(public)/privacy/page.tsx (created)
+  - apps/web/app/(public)/terms/page.tsx (created)
+
+implementation:
+  - Created 6 new stub pages in (public) route group
+  - Used consistent design: icon, title, description, CTA, ticket ref
+  - All pages automatically wrapped by PublicLayout
+
+related_tickets:
+  - PF-CONTENT-001 (future: actual content for these pages)
+
+notes: |
+  These are temporary stubs. Real content should be added in future sprints.
+  For now, users get a professional message instead of 404 errors.
+

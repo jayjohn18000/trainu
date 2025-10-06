@@ -1,0 +1,66 @@
+[
+  {
+    "file": "src/lib/data.ts",
+    "line": 68,
+    "method": "listTrainers",
+    "url": "Mock API - fixtures/trainers.json",
+    "data_shape": "Trainer[]",
+    "used_by_routes": ["Directory", "Discover", "TrainerProfile"]
+  },
+  {
+    "file": "src/lib/data.ts",
+    "line": 92,
+    "method": "getTrainerBySlug",
+    "url": "Mock API - fixtures/trainers.json",
+    "data_shape": "Trainer | null",
+    "used_by_routes": ["TrainerProfile"]
+  },
+  {
+    "file": "src/lib/data.ts",
+    "line": 98,
+    "method": "listSessionTypesByTrainer",
+    "url": "Mock API - fixtures/sessionTypes.json",
+    "data_shape": "SessionType[]",
+    "used_by_routes": ["TrainerProfile", "BookingWizard"]
+  },
+  {
+    "file": "src/lib/data.ts",
+    "line": 106,
+    "method": "listGyms",
+    "url": "Mock API - fixtures/gyms.json",
+    "data_shape": "Gym[]",
+    "used_by_routes": ["Directory", "Discover"]
+  },
+  {
+    "file": "src/lib/data.ts",
+    "line": 112,
+    "method": "getGymById",
+    "url": "Mock API - fixtures/gyms.json",
+    "data_shape": "Gym | null",
+    "used_by_routes": ["TrainerProfile"]
+  },
+  {
+    "file": "src/lib/data.ts",
+    "line": 119,
+    "method": "createBooking",
+    "url": "Mock API - Simulated booking creation",
+    "data_shape": "Booking",
+    "used_by_routes": ["BookingWizard"]
+  },
+  {
+    "file": "src/lib/store/useAuthStore.ts",
+    "line": 20,
+    "method": "Zustand Store",
+    "url": "Local Storage - trainu-auth",
+    "data_shape": "AuthState",
+    "used_by_routes": ["All protected routes"]
+  },
+  {
+    "file": "src/lib/store/useCalendarStore.ts",
+    "line": 84,
+    "method": "Zustand Store",
+    "url": "Local Storage - trainu-calendar",
+    "data_shape": "CalendarState",
+    "used_by_routes": ["Calendar", "Dashboard"]
+  }
+]

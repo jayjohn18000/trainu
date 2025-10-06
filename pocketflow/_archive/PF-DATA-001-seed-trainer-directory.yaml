@@ -1,0 +1,77 @@
+id: PF-DATA-001
+title: Seed trainer directory with diverse trainer data
+type: task
+priority: P2
+status: completed
+created: 2025-10-06
+assignee: ai-agent
+completed: 2025-10-06
+
+description: |
+  Created comprehensive seed data for the trainer directory with 15 diverse trainers
+  across different specialties, locations, and experience levels to provide a rich
+  browsing experience for users.
+
+acceptance_criteria:
+  - ✅ 15 diverse trainers created
+  - ✅ Multiple specialties covered (strength, yoga, crossfit, running, etc.)
+  - ✅ Mix of verified and unverified trainers
+  - ✅ Realistic ratings (4.7-4.9)
+  - ✅ Varied client counts and session numbers
+  - ✅ Professional photos from Unsplash
+  - ✅ All trainers in Chicago metro area
+  - ✅ SQL seed script with upsert logic (idempotent)
+
+trainers_created:
+  - Sarah Johnson - Strength & Conditioning
+  - Marcus Williams - CrossFit & HIIT
+  - Emily Chen - Yoga & Mindfulness
+  - David Martinez - Sports Performance
+  - Jessica Taylor - Weight Loss
+  - Brandon Lee - Powerlifting
+  - Amanda Rodriguez - Pre/Postnatal
+  - Kevin Park - Bodybuilding
+  - Rachel Green - Pilates
+  - Sophia Martinez - Group Fitness
+  - Chris Anderson - Senior Fitness
+  - Mia Patel - Running Coach
+  - Tyler Brooks - Functional Fitness
+  - Nina Kowalski - Kickboxing
+  - James Wilson - Athletic Training
+
+specialties_covered:
+  - Strength Training & Powerlifting
+  - CrossFit & HIIT
+  - Yoga & Pilates
+  - Running & Endurance
+  - Sports Performance
+  - Weight Loss & Body Transformation
+  - Bodybuilding & Physique
+  - Pre/Postnatal Fitness
+  - Senior Fitness
+  - Kickboxing & Martial Arts
+  - Group Fitness & Bootcamp
+  - Functional Movement
+  - Injury Rehab & Athletic Training
+
+files_created:
+  - apps/web/db/seed_trainers_expanded.sql (comprehensive seed with 15 trainers)
+
+usage_instructions: |
+  1. Open Supabase SQL Editor
+  2. Copy and paste the contents of seed_trainers_expanded.sql
+  3. Run the script
+  4. Verify with: SELECT count(*) FROM public.trainers;
+  5. Refresh the /directory page to see all trainers
+
+related_tickets:
+  - PF-BUG-002 (fixed Supabase env vars to connect)
+
+notes: |
+  - Used Unsplash for professional, realistic trainer photos
+  - All trainers in Chicago metro area for consistency
+  - Mixed verification status (13 verified, 2 pending)
+  - Ratings range from 4.7-4.9 (realistic, not all perfect)
+  - Client counts vary from 36-91 (realistic range)
+  - Script is idempotent (safe to run multiple times)
+

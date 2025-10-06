@@ -1,0 +1,58 @@
+id: PF-ERROR-001
+title: Add root-level error boundaries (not-found.tsx, error.tsx)
+type: feature
+priority: P1
+status: completed
+created: 2025-10-06
+assignee: ai-agent
+completed: 2025-10-06
+
+description: |
+  The app had error boundaries in some nested routes but not at the root level.
+  This meant:
+  - Unmatched routes fell back to Next.js default 404 page (not branded)
+  - Uncaught errors in root layout showed generic Next.js error page
+  - Poor user experience for edge cases
+
+reproduction_steps:
+  - Navigate to a non-existent route (e.g., /foobar)
+  - Observe: Generic Next.js 404 page with no branding
+  - Force a React error in a component
+  - Observe: Generic Next.js error page with stack trace
+
+suspected_cause: |
+  Missing app/not-found.tsx and app/error.tsx files. These are optional but
+  recommended for production apps to provide branded error experiences.
+
+proposed_fix: |
+  Create two error boundary files at the root:
+  1. app/not-found.tsx - Custom 404 page with branding and helpful links
+  2. app/error.tsx - Global error boundary for React errors with recovery options
+
+acceptance_criteria:
+  - ✅ app/not-found.tsx created with branded 404 experience
+  - ✅ app/error.tsx created with error recovery UI
+  - ✅ 404 page shows TrainU branding and links (Home, Find Trainers)
+  - ✅ Error page shows helpful message and "Try Again" button
+  - ✅ Error page logs errors to console (ready for Sentry when enabled)
+  - ✅ Both pages are responsive and well-designed
+  - ✅ Error digests displayed for debugging
+
+files_affected:
+  - apps/web/app/not-found.tsx (created)
+  - apps/web/app/error.tsx (created)
+
+implementation:
+  - Created not-found.tsx with 404 design, Home + Find Trainers CTAs
+  - Created error.tsx with error display, Try Again + Home CTAs
+  - Added TODO comment for Sentry integration when re-enabled
+  - Used AlertTriangle icon for error, consistent with site design
+
+related_tickets:
+  - PF-OBS-001 (future: integrate with Sentry for error tracking)
+
+notes: |
+  These boundaries provide a much better user experience for error states.
+  When Sentry is re-enabled in Phase 3+, errors will automatically be captured
+  in error.tsx using the error.digest value.
+

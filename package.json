@@ -10,5 +10,13 @@
     "dev:agent": "pnpm -C apps/agent dev",
     "lint": "eslint .",
     "typecheck": "tsc -b"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.45.0",
+    "@typescript-eslint/parser": "^8.45.0",
+    "eslint": "^9.37.0",
+    "eslint-plugin-react": "^7.37.5",
+    "supabase": "^2.48.3",
+    "typescript": "^5.9.3"
   }
 }

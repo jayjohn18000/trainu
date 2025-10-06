@@ -1,0 +1,57 @@
+id: PF-NAV-001
+title: Restore global navigation across all authenticated pages
+type: feature
+priority: P0
+status: completed
+created: 2025-10-06
+assignee: ai-agent
+completed: 2025-10-06
+
+description: |
+  The AppLayout component (with TabNavigation and RoleSwitcher) was created but never
+  integrated into the app. Dashboard pages had no navigation, leaving users stranded
+  with no way to switch routes.
+
+reproduction_steps:
+  - Navigate to /dashboard/client or /dashboard/trainer
+  - Observe: No navigation bar, no way to switch tabs or access other features
+  - User is stuck on current page with no UI navigation
+
+suspected_cause: |
+  app/dashboard/layout.tsx was a minimal wrapper that didn't include AppLayout.
+  The AppLayout component existed in components/ but was orphaned - never imported
+  or used anywhere in the application.
+
+proposed_fix: |
+  1. Update app/dashboard/layout.tsx to wrap children with AppLayout
+  2. Mark layout as "use client" since AppLayout uses React hooks
+  3. Ensure AppLayout renders TabNavigation and RoleSwitcher properly
+
+acceptance_criteria:
+  - ✅ Dashboard routes render with full AppLayout (header, nav, back button)
+  - ✅ TabNavigation shows main tabs (Dashboard, Schedule, Communication)
+  - ✅ Sub-tabs render based on user role (client vs trainer)
+  - ✅ Mobile navigation works (bottom nav + hamburger menu)
+  - ✅ RoleSwitcher allows demo role switching
+  - ✅ Back button navigates to previous page
+  - ✅ Settings button in header navigates to /settings
+
+files_affected:
+  - apps/web/app/dashboard/layout.tsx
+  - apps/web/components/AppLayout.tsx (already existed)
+  - apps/web/components/TabNavigation.tsx (already existed)
+  - apps/web/components/RoleSwitcher.tsx (already existed)
+
+implementation:
+  - Changed app/dashboard/layout.tsx to use AppLayout wrapper
+  - Added "use client" directive
+  - Tested on /dashboard, /dashboard/client, /dashboard/trainer
+
+related_tickets:
+  - PF-NAV-002
+  - PF-LINKS-001
+
+notes: |
+  This was the #1 critical issue preventing app usability. All navigation is now
+  functional on dashboard routes. Auth routes intentionally use a minimal layout.
+

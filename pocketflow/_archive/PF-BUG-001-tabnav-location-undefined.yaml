@@ -1,0 +1,58 @@
+id: PF-BUG-001
+title: Fix "location is not defined" error in TabNavigation
+type: bug
+priority: P0
+status: completed
+created: 2025-10-06
+assignee: ai-agent
+completed: 2025-10-06
+
+description: |
+  TabNavigation component was using browser's global `location.pathname` which doesn't
+  exist during server-side rendering, causing all dashboard routes to return 500 errors.
+
+error_message: |
+  ReferenceError: location is not defined
+  at isActiveSubTab (./components/TabNavigation.tsx:88:61)
+
+reproduction_steps:
+  - Navigate to any dashboard route (e.g., /dashboard/client)
+  - Server throws: ReferenceError: location is not defined
+  - Page returns 500 error
+
+root_cause: |
+  Line 88 in TabNavigation.tsx used `location.pathname` directly:
+  ```
+  const isActiveSubTab = (path: string) => location.pathname === path;
+  ```
+  
+  The `location` object is a browser global and doesn't exist in Node.js/React Server
+  Components. The component already has access to `pathname` from `usePathname()` hook.
+
+proposed_fix: |
+  Replace `location.pathname` with `pathname` variable that's already available:
+  ```
+  const isActiveSubTab = (path: string) => pathname === path;
+  ```
+
+acceptance_criteria:
+  - ✅ Dashboard routes no longer throw 500 errors
+  - ✅ TabNavigation renders correctly
+  - ✅ Active tab highlighting works
+  - ✅ No ReferenceError in server logs
+
+files_affected:
+  - apps/web/components/TabNavigation.tsx (line 88)
+
+implementation:
+  - Changed `location.pathname` to `pathname` (already destructured from usePathname())
+  - This uses Next.js's pathname hook which works in both client and server contexts
+
+related_tickets:
+  - PF-NAV-001 (restored navigation)
+  - PF-LINKS-002 (fixed navigation paths)
+
+notes: |
+  This is a common mistake when migrating from client-only components to App Router.
+  Always use Next.js hooks (usePathname, useSearchParams, etc.) instead of browser globals.
+

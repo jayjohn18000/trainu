@@ -1,0 +1,18 @@
+[
+  {
+    "id": "1",
+    "name": "Fitness First",
+    "city": "Downtown",
+    "state": "CA",
+    "address": "123 Main St, Downtown",
+    "description": "Premium fitness center with pool, sauna, and group classes"
+  },
+  {
+    "id": "2",
+    "name": "Power Gym",
+    "city": "Midtown",
+    "state": "CA",
+    "address": "456 Oak Ave, Midtown",
+    "description": "24/7 gym with weight room and cardio equipment"
+  }
+]

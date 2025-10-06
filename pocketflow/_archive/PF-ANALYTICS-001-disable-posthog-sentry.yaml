@@ -1,0 +1,58 @@
+id: PF-ANALYTICS-001
+title: Disable PostHog and Sentry until Phase 3+
+type: task
+priority: P1
+status: completed
+created: 2025-10-06
+assignee: ai-agent
+completed: 2025-10-06
+
+description: |
+  Per project decision, PostHog (analytics) and Sentry (error tracking) should be
+  disabled until core features are stable. The packages are installed but should
+  not be initialized or used yet.
+
+reproduction_steps:
+  - Check lib/posthog.ts - PostHog initialization code exists
+  - Check app/providers.tsx - Analytics providers commented out
+  - PostHog events may be called throughout the codebase
+
+proposed_fix: |
+  1. Disable PostHog initialization in lib/posthog.ts
+  2. Export a no-op proxy to prevent errors in code that imports posthog
+  3. Add clear comments explaining they're disabled until Phase 3+
+  4. Update providers.tsx with re-enablement instructions
+  5. Sentry is already not configured, just ensure it stays that way
+
+acceptance_criteria:
+  - ✅ PostHog initialization commented out in lib/posthog.ts
+  - ✅ No-op proxy exported to prevent import errors
+  - ✅ Clear comments added explaining deferral decision
+  - ✅ providers.tsx updated with re-enablement instructions
+  - ✅ No runtime errors from disabled analytics
+  - ✅ Sentry remains unconfigured (no sentry.*.config.ts files)
+
+files_affected:
+  - apps/web/lib/posthog.ts (modified)
+  - apps/web/app/providers.tsx (modified)
+
+implementation:
+  - Commented out posthog.init() in lib/posthog.ts
+  - Created no-op proxy object with stub methods
+  - Added detailed comments about Phase 3+ re-enablement
+  - Updated providers.tsx with re-enablement checklist
+  - Verified Sentry has no initialization code
+
+related_tickets:
+  - PF-OBS-001 (future: re-enable analytics and error tracking)
+
+notes: |
+  This allows the team to focus on core features first. Analytics and error
+  tracking will be enabled once the app is stable and generating real user traffic.
+  
+  Re-enablement checklist:
+  1. Uncomment posthog.init() in lib/posthog.ts
+  2. Add PostHogProvider to providers.tsx
+  3. Create sentry.client.config.ts and sentry.server.config.ts
+  4. Set NEXT_PUBLIC_POSTHOG_KEY and SENTRY_DSN in environment
+

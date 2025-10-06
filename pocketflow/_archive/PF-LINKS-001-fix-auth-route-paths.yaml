@@ -1,0 +1,57 @@
+id: PF-LINKS-001
+title: Fix broken auth links in PublicHeader (route group notation)
+type: bug
+priority: P0
+status: completed
+created: 2025-10-06
+assignee: ai-agent
+completed: 2025-10-06
+
+description: |
+  PublicHeader used incorrect route paths for sign-in and sign-up links. Links were
+  using route group notation `/(auth)/sign-in` which is for folder organization only,
+  not URLs. This resulted in 404 errors when users clicked these links.
+
+reproduction_steps:
+  - Visit homepage or any public page
+  - Click "Sign In" or "Get Started" button in header
+  - Browser navigates to `/(auth)/sign-in` or `/(auth)/sign-up`
+  - Result: 404 Not Found
+
+suspected_cause: |
+  Developer misunderstanding of Next.js App Router route groups. The `(auth)` folder
+  is a route group for organization - it doesn't appear in the URL path. Correct URLs
+  should be `/sign-in` and `/sign-up` (without the `(auth)` prefix).
+
+proposed_fix: |
+  Update PublicHeader.tsx to use correct paths:
+  - href="/(auth)/sign-in" → href="/sign-in"
+  - href="/(auth)/sign-up" → href="/sign-up"
+  
+  Apply fix in both desktop and mobile navigation sections.
+
+acceptance_criteria:
+  - ✅ "Sign In" link navigates to /sign-in successfully
+  - ✅ "Get Started" button navigates to /sign-up successfully
+  - ✅ Both desktop and mobile navigation fixed
+  - ✅ No 404 errors on auth page navigation
+  - ✅ Auth pages render with new minimal layout
+
+files_affected:
+  - apps/web/components/layout/PublicHeader.tsx
+
+implementation:
+  - Replaced `/(auth)/sign-in` with `/sign-in` (2 places in desktop nav)
+  - Replaced `/(auth)/sign-up` with `/sign-up` (2 places in desktop nav)
+  - Applied same fixes to mobile navigation section
+  - Total: 4 link updates
+
+related_tickets:
+  - PF-NAV-002
+  - PF-404-auth-routes
+
+notes: |
+  This is a common mistake when first learning Next.js App Router route groups.
+  Route groups like (auth), (public), (marketing) are organizational only and
+  don't affect URL structure.
+

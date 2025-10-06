@@ -1,0 +1,54 @@
+id: PF-NAV-002
+title: Create minimal layout for authentication pages
+type: feature
+priority: P1
+status: completed
+created: 2025-10-06
+assignee: ai-agent
+completed: 2025-10-06
+
+description: |
+  Auth pages (/sign-in, /sign-up) had NO layout at all - not even a header or logo.
+  Users arriving at these pages had no context about what app they were signing into.
+
+reproduction_steps:
+  - Navigate to /sign-in or /sign-up
+  - Observe: No header, no logo, no branding, no "back to home" link
+  - Page looks incomplete and unprofessional
+
+suspected_cause: |
+  The (auth) route group had no layout.tsx file. Auth pages were only wrapped by
+  the root layout (which is minimal).
+
+proposed_fix: |
+  Create app/(auth)/layout.tsx with:
+  - Simple header with TrainU logo
+  - "Back to Home" link
+  - Centered content area for auth forms
+  - Clean, minimal design (don't need full AppLayout navigation)
+
+acceptance_criteria:
+  - ✅ Auth pages show TrainU branding in header
+  - ✅ "Back to Home" link navigates to /
+  - ✅ Logo is clickable and returns to home
+  - ✅ Layout is responsive and centered
+  - ✅ Maintains minimal design (no full nav needed for auth)
+
+files_affected:
+  - apps/web/app/(auth)/layout.tsx (newly created)
+  - apps/web/app/(auth)/sign-in/page.tsx
+  - apps/web/app/(auth)/sign-up/page.tsx
+
+implementation:
+  - Created app/(auth)/layout.tsx with minimal header
+  - Used PublicHeader styling as reference
+  - Centered main content area for auth forms
+
+related_tickets:
+  - PF-NAV-001
+  - PF-LINKS-001
+
+notes: |
+  Auth pages now have professional branding while keeping the minimal UX appropriate
+  for sign-in flows. Users can easily navigate back to home.
+

@@ -1,0 +1,32 @@
+[
+  {
+    "id": "1",
+    "trainerId": "1",
+    "title": "Personal Training",
+    "duration": 60,
+    "price": 80,
+    "capacity": 1,
+    "mode": "in_person",
+    "description": "One-on-one training session with a certified trainer"
+  },
+  {
+    "id": "2",
+    "trainerId": "2", 
+    "title": "Virtual Training",
+    "duration": 45,
+    "price": 60,
+    "capacity": 1,
+    "mode": "virtual",
+    "description": "Online training session via video call"
+  },
+  {
+    "id": "3",
+    "trainerId": "1",
+    "title": "Group Training",
+    "duration": 60,
+    "price": 40,
+    "capacity": 6,
+    "mode": "in_person", 
+    "description": "Small group training session"
+  }
+]

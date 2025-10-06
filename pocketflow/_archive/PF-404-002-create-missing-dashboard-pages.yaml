@@ -1,0 +1,77 @@
+id: PF-404-002
+title: Create stub pages for missing dashboard routes
+type: task
+priority: P1
+status: completed
+created: 2025-10-06
+assignee: ai-agent
+completed: 2025-10-06
+
+description: |
+  TabNavigation and other UI components reference multiple dashboard routes that
+  don't exist yet. When users click these tabs/links, they get 404 errors.
+
+reproduction_steps:
+  - Navigate to /dashboard/client
+  - Try to navigate to "Calendar" tab → 404
+  - Try to navigate to "Messages" tab → 404
+  - Try to navigate to "Discover", "Workout", "Progress" → all 404s
+  - Click "Settings" button in header → 404
+  - Similar issues for trainer role with "Clients", "Programs", etc.
+
+missing_routes:
+  - /dashboard/settings
+  - /dashboard/calendar
+  - /dashboard/messages
+  - /dashboard/discover
+  - /dashboard/workout
+  - /dashboard/progress
+  - /dashboard/clients
+  - /dashboard/programs
+  - /dashboard/community/people
+  - /dashboard/community/groups
+  - /dashboard/community/events
+
+proposed_fix: |
+  Create "under construction" stub pages for all missing dashboard routes.
+  Each page should:
+  - Work with AppLayout (navigation will render automatically)
+  - Show clear "under construction" message
+  - Describe what the feature will do
+  - Include PocketFlow ticket reference
+
+acceptance_criteria:
+  - ✅ All 11 dashboard routes created and accessible
+  - ✅ No 404 errors when navigating via TabNavigation
+  - ✅ Pages render with AppLayout (full navigation)
+  - ✅ "Under construction" messaging is clear
+  - ✅ Icons and headings match the feature being built
+  - ✅ Client components where needed (use client directive)
+
+files_affected:
+  - apps/web/app/dashboard/settings/page.tsx (created)
+  - apps/web/app/dashboard/calendar/page.tsx (created)
+  - apps/web/app/dashboard/messages/page.tsx (created)
+  - apps/web/app/dashboard/discover/page.tsx (created)
+  - apps/web/app/dashboard/workout/page.tsx (created)
+  - apps/web/app/dashboard/progress/page.tsx (created)
+  - apps/web/app/dashboard/clients/page.tsx (created)
+  - apps/web/app/dashboard/programs/page.tsx (created)
+  - apps/web/app/dashboard/community/people/page.tsx (created)
+  - apps/web/app/dashboard/community/groups/page.tsx (created)
+  - apps/web/app/dashboard/community/events/page.tsx (created)
+
+implementation:
+  - Created 11 new stub pages under dashboard route group
+  - All pages marked as "use client" where needed
+  - Consistent design: icon, title, subtitle, under construction card
+  - Pages automatically wrapped by dashboard layout (AppLayout)
+
+related_tickets:
+  - PF-NAV-001 (navigation now works to reach these pages)
+  - PF-FEAT-* (future tickets for actual implementations)
+
+notes: |
+  Navigation is now fully functional - all tabs and links work without 404s.
+  These are stubs that will be replaced with real implementations in future sprints.
+

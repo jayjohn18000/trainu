@@ -1,0 +1,163 @@
+[
+  {
+    "path": "/",
+    "component": "Landing",
+    "params": null,
+    "layout": null,
+    "guards": []
+  },
+  {
+    "path": "/discover",
+    "component": "Discover",
+    "params": null,
+    "layout": "AppLayout",
+    "guards": []
+  },
+  {
+    "path": "/dashboard/client",
+    "component": "ClientDashboard",
+    "params": null,
+    "layout": "AppLayout",
+    "guards": []
+  },
+  {
+    "path": "/dashboard/trainer",
+    "component": "TrainerDashboard",
+    "params": null,
+    "layout": "AppLayout",
+    "guards": []
+  },
+  {
+    "path": "/dashboard/gym-admin",
+    "component": "GymAdminDashboard",
+    "params": null,
+    "layout": "AppLayout",
+    "guards": []
+  },
+  {
+    "path": "/directory",
+    "component": "Directory",
+    "params": null,
+    "layout": "AppLayout",
+    "guards": []
+  },
+  {
+    "path": "/trainers/:slug",
+    "component": "TrainerProfile",
+    "params": ["slug"],
+    "layout": "AppLayout",
+    "guards": []
+  },
+  {
+    "path": "/calendar",
+    "component": "Calendar",
+    "params": null,
+    "layout": "AppLayout",
+    "guards": []
+  },
+  {
+    "path": "/workout",
+    "component": "WorkoutLogger",
+    "params": null,
+    "layout": "AppLayout",
+    "guards": []
+  },
+  {
+    "path": "/progress",
+    "component": "Progress",
+    "params": null,
+    "layout": "AppLayout",
+    "guards": []
+  },
+  {
+    "path": "/programs",
+    "component": "Programs",
+    "params": null,
+    "layout": "AppLayout",
+    "guards": []
+  },
+  {
+    "path": "/clients",
+    "component": "Clients",
+    "params": null,
+    "layout": "AppLayout",
+    "guards": []
+  },
+  {
+    "path": "/messages",
+    "component": "Messages",
+    "params": null,
+    "layout": "AppLayout",
+    "guards": []
+  },
+  {
+    "path": "/community/events",
+    "component": "CommunityEvents",
+    "params": null,
+    "layout": "AppLayout",
+    "guards": []
+  },
+  {
+    "path": "/events/:id",
+    "component": "EventDetail",
+    "params": ["id"],
+    "layout": "AppLayout",
+    "guards": []
+  },
+  {
+    "path": "/community/people",
+    "component": "CommunityPeople",
+    "params": null,
+    "layout": "AppLayout",
+    "guards": []
+  },
+  {
+    "path": "/community/groups",
+    "component": "CommunityGroups",
+    "params": null,
+    "layout": "AppLayout",
+    "guards": []
+  },
+  {
+    "path": "/growth",
+    "component": "Growth",
+    "params": null,
+    "layout": "AppLayout",
+    "guards": []
+  },
+  {
+    "path": "/settings",
+    "component": "Settings",
+    "params": null,
+    "layout": "AppLayout",
+    "guards": []
+  },
+  {
+    "path": "/admin",
+    "component": "Admin",
+    "params": null,
+    "layout": "AppLayout",
+    "guards": []
+  },
+  {
+    "path": "/admin/trainers",
+    "component": "Admin",
+    "params": null,
+    "layout": "AppLayout",
+    "guards": []
+  },
+  {
+    "path": "/admin/classes",
+    "component": "Admin",
+    "params": null,
+    "layout": "AppLayout",
+    "guards": []
+  },
+  {
+    "path": "*",
+    "component": "NotFound",
+    "params": null,
+    "layout": null,
+    "guards": []
+  }
+]

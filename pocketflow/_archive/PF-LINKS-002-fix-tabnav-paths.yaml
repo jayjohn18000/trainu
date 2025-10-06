@@ -1,0 +1,63 @@
+id: PF-LINKS-002
+title: Fix TabNavigation paths to match actual dashboard routes
+type: bug
+priority: P0
+status: completed
+created: 2025-10-06
+assignee: ai-agent
+completed: 2025-10-06
+
+description: |
+  TabNavigation component had incorrect paths that didn't include the /dashboard prefix.
+  This caused all navigation links to 404 because the pages exist at /dashboard/* but
+  the navigation was trying to navigate to root-level paths like /calendar, /messages, etc.
+
+reproduction_steps:
+  - Navigate to /dashboard/client
+  - Click on "Calendar" tab
+  - Browser tries to navigate to /calendar (404)
+  - Expected: Should navigate to /dashboard/calendar
+
+suspected_cause: |
+  When creating the dashboard stub pages, we created them under /dashboard/* but forgot
+  to update the TabNavigation component's path definitions. The original TabNavigation
+  assumed routes would be at the root level, not nested under /dashboard/.
+
+proposed_fix: |
+  Update all path definitions in TabNavigation.tsx to include /dashboard prefix:
+  - /calendar → /dashboard/calendar
+  - /messages → /dashboard/messages
+  - /discover → /dashboard/discover
+  - /workout → /dashboard/workout
+  - /progress → /dashboard/progress
+  - /clients → /dashboard/clients
+  - /programs → /dashboard/programs
+  - /community/* → /dashboard/community/*
+  
+  Also update getActiveMainTab() logic to check for /dashboard/* paths.
+
+acceptance_criteria:
+  - ✅ All tab navigation links work without 404s
+  - ✅ Clicking "Calendar" navigates to /dashboard/calendar
+  - ✅ Clicking "Messages" navigates to /dashboard/messages
+  - ✅ All sub-tabs navigate correctly
+  - ✅ Active tab highlighting works correctly
+  - ✅ Settings button navigates to /dashboard/settings
+
+files_affected:
+  - apps/web/components/TabNavigation.tsx (13 path updates)
+  - apps/web/components/AppLayout.tsx (1 path update for settings)
+
+implementation:
+  - Updated subTabs object with correct /dashboard/* paths
+  - Updated getActiveMainTab() to check /dashboard/* paths
+  - Fixed Settings button in AppLayout to use /dashboard/settings
+
+related_tickets:
+  - PF-NAV-001 (restored navigation)
+  - PF-404-002 (created dashboard stub pages)
+
+notes: |
+  This was a critical oversight - navigation looked like it worked but every link was
+  broken. All 11 dashboard feature pages are now actually accessible via navigation.
+

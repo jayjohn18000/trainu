@@ -1,0 +1,47 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": false,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": false,
+    "declaration": true,
+    "outDir": "./dist",
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+
+    /* Linting */
+    "strict": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noFallthroughCasesInSwitch": true,
+
+    /* Path mapping */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "types": ["react", "react-dom"]
+  },
+  "include": [
+    "src/Button.tsx",
+    "src/Section.tsx", 
+    "src/badge.tsx",
+    "src/card.tsx",
+    "src/input.tsx",
+    "src/label.tsx",
+    "src/select.tsx",
+    "src/separator.tsx",
+    "src/skeleton.tsx",
+    "src/utils.ts",
+    "src/index.ts"
+  ],
+  "exclude": ["node_modules", "dist"]
+}

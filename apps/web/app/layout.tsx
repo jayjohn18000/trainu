@@ -1,4 +1,6 @@
 import "./globals.css";
+import "../styles/tokens.css";
+import "../styles/lovable.css";
 import type { ReactNode } from "react";
 import Providers from "./providers";
 

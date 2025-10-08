@@ -1,0 +1,33 @@
+/* Lovable-specific styles for beta preview */
+
+/* Prevent horizontal scroll on mobile */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* Lovable component overrides */
+.lovable-card {
+  @apply rounded-xl border border-border bg-card shadow-md transition-all duration-base;
+  @apply hover:shadow-lg hover:border-border-hover hover:-translate-y-0.5;
+}
+
+.lovable-metric-card {
+  @apply rounded-2xl border border-border bg-card p-6 shadow-md;
+  @apply transition-all duration-base;
+  @apply hover:shadow-lg hover:border-primary/20;
+}
+
+.lovable-chart-grid {
+  @apply rounded-2xl border border-border bg-card p-6 shadow-md;
+}
+
+/* Beta-specific navigation styling */
+.beta-nav {
+  @apply bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60;
+}
+
+/* Loading states */
+.lovable-skeleton {
+  @apply animate-pulse bg-muted rounded;
+}

@@ -44,6 +44,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
         <div className="flex items-center gap-2 sm:gap-4">
           <Button
+            variant="default"
+            size="sm"
+            onClick={() => router.push("/beta/dashboard")}
+            className="text-xs font-semibold bg-primary hover:bg-primary/90"
+          >
+            🎨 Preview Beta
+          </Button>
+          <Button
             variant="ghost"
             size="icon"
             onClick={() => router.push("/dashboard/settings")}

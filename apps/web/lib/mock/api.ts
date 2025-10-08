@@ -1,136 +1,189 @@
-import { z } from "zod";
+"use client";
 
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-const randomDelay = () => sleep(300 + Math.random() * 400);
+import { sleep } from './utils';
+import type {
+  User, Post, Comment, Reaction, Event, EventRegistration,
+  Goal, GoalEntry, Session, InboxDraft, ClientProgress
+} from './types';
 
-// ==================== SCHEMAS ====================
+// Mock API functions with Promise-based latency
+const mockDelay = () => sleep(200 + Math.random() * 300);
 
-export const Trainer = z.object({
-  id: z.string(),
-  name: z.string(),
-  slug: z.string(),
-  email: z.string().email(),
-  city: z.string(),
-  state: z.string(),
-  avatarUrl: z.string().optional(),
-  specialties: z.array(z.string()),
-  verified: z.boolean(),
-  rating: z.number().optional(),
-  reviewCount: z.number().optional(),
-  bio: z.string().optional(),
-  socials: z
-    .object({
-      instagram: z.string().optional(),
-      website: z.string().optional(),
-    })
-    .optional(),
-  gymId: z.string(),
-});
-export type Trainer = z.infer<typeof Trainer>;
+// ==================== USER API ====================
 
-export const SessionType = z.object({
-  id: z.string(),
-  trainerId: z.string(),
-  title: z.string(),
-  duration: z.number(),
-  price: z.number(),
-  capacity: z.number(),
-  mode: z.enum(["in_person", "virtual"]),
-  description: z.string().optional(),
-});
-export type SessionType = z.infer<typeof SessionType>;
-
-export const Gym = z.object({
-  id: z.string(),
-  name: z.string(),
-  city: z.string(),
-  state: z.string(),
-  address: z.string(),
-  description: z.string().optional(),
-});
-export type Gym = z.infer<typeof Gym>;
-
-export const Booking = z.object({
-  id: z.string(),
-  clientId: z.string(),
-  trainerId: z.string(),
-  sessionTypeId: z.string(),
-  startAt: z.string(),
-  endAt: z.string(),
-  status: z.enum(["confirmed", "canceled", "rescheduled", "completed"]),
-  virtualProvider: z.string().nullable(),
-  virtualJoinUrl: z.string().nullable(),
-});
-export type Booking = z.infer<typeof Booking>;
-
-// ==================== API METHODS ====================
-
-export async function listTrainers(filters?: {
-  city?: string;
-  specialty?: string;
-}): Promise<Trainer[]> {
-  await randomDelay();
-  const data = (await import("@/fixtures/trainers.json")).default;
-  let results = data;
-  
-  if (filters?.city) {
-    results = results.filter((t: any) =>
-      t.city.toLowerCase().includes(filters.city!.toLowerCase())
-    );
-  }
-  if (filters?.specialty) {
-    results = results.filter((t: any) =>
-      t.specialties.some((s: string) =>
-        s.toLowerCase().includes(filters.specialty!.toLowerCase())
-      )
-    );
-  }
-  
-  return results as Trainer[];
+export async function getUser(id: string): Promise<User | null> {
+  await mockDelay();
+  // This will be handled by the store
+  return null;
 }
 
-export async function getTrainerBySlug(slug: string): Promise<Trainer | null> {
-  await randomDelay();
-  const data = (await import("@/fixtures/trainers.json")).default;
-  return (data.find((t: any) => t.slug === slug) as Trainer) || null;
+export async function getCurrentUser(): Promise<User | null> {
+  await mockDelay();
+  // This will be handled by the store
+  return null;
 }
 
-export async function listSessionTypesByTrainer(
-  trainerId: string
-): Promise<SessionType[]> {
-  await randomDelay();
-  const data = (await import("@/fixtures/sessionTypes.json")).default;
-  return data.filter((st: any) => st.trainerId === trainerId) as SessionType[];
+// ==================== COMMUNITY API ====================
+
+export async function getPosts(): Promise<Post[]> {
+  await mockDelay();
+  // This will be handled by the store
+  return [];
 }
 
-export async function listGyms(): Promise<Gym[]> {
-  await randomDelay();
-  const data = (await import("@/fixtures/gyms.json")).default;
-  return data as Gym[];
-}
-
-export async function getGymById(id: string): Promise<Gym | null> {
-  await randomDelay();
-  const data = (await import("@/fixtures/gyms.json")).default;
-  return (data.find((g: any) => g.id === id) as Gym) || null;
-}
-
-// Mock booking creation
-export async function createBooking(data: {
-  sessionTypeId: string;
-  startAt: string;
-  endAt: string;
-}): Promise<Booking> {
-  await randomDelay();
-  return {
-    id: `booking-${Date.now()}`,
-    clientId: "demo-user",
-    trainerId: "t1", // mock
-    sessionTypeId: data.sessionTypeId,
-    startAt: data.startAt,
-    endAt: data.endAt,
-    status: "confirmed",
-    virtualProvider: null,
-    virtualJoinUrl: null,
+export async function createPost(post: Omit<Post, 'id' | 'createdAt'>): Promise<Post> {
+  await mockDelay();
+  const newPost: Post = {
+    ...post,
+    id: `post-${Date.now()}`,
+    createdAt: new Date().toISOString(),
   };
+  return newPost;
+}
+
+export async function addComment(comment: Omit<Comment, 'id' | 'createdAt'>): Promise<Comment> {
+  await mockDelay();
+  const newComment: Comment = {
+    ...comment,
+    id: `comment-${Date.now()}`,
+    createdAt: new Date().toISOString(),
+  };
+  return newComment;
+}
+
+export async function addReaction(reaction: Omit<Reaction, 'id'>): Promise<Reaction> {
+  await mockDelay();
+  const newReaction: Reaction = {
+    ...reaction,
+    id: `reaction-${Date.now()}`,
+  };
+  return newReaction;
+}
+
+export async function removeReaction(postId: string, userId: string): Promise<void> {
+  await mockDelay();
+  // This will be handled by the store
+}
+
+// ==================== EVENTS API ====================
+
+export async function getEvents(): Promise<Event[]> {
+  await mockDelay();
+  // This will be handled by the store
+  return [];
+}
+
+export async function getEvent(id: string): Promise<Event | null> {
+  await mockDelay();
+  // This will be handled by the store
+  return null;
+}
+
+export async function registerForEvent(eventId: string, userId: string): Promise<EventRegistration> {
+  await mockDelay();
+  const registration: EventRegistration = {
+    id: `reg-${Date.now()}`,
+    eventId,
+    userId,
+    registeredAt: new Date().toISOString(),
+  };
+  return registration;
+}
+
+export async function isRegisteredForEvent(eventId: string, userId: string): Promise<boolean> {
+  await mockDelay();
+  // This will be handled by the store
+  return false;
+}
+
+// ==================== GOALS & PROGRESS API ====================
+
+export async function getGoals(userId: string): Promise<Goal[]> {
+  await mockDelay();
+  // This will be handled by the store
+  return [];
+}
+
+export async function createGoalEntry(entry: Omit<GoalEntry, 'id'>): Promise<GoalEntry> {
+  await mockDelay();
+  const newEntry: GoalEntry = {
+    ...entry,
+    id: `entry-${Date.now()}`,
+  };
+  return newEntry;
+}
+
+export async function updateGoalEntry(entry: GoalEntry): Promise<GoalEntry> {
+  await mockDelay();
+  return entry;
+}
+
+export async function getClientProgress(userId: string): Promise<ClientProgress | null> {
+  await mockDelay();
+  // This will be handled by the store
+  return null;
+}
+
+// ==================== SESSIONS API ====================
+
+export async function getNextSession(userId: string): Promise<Session | null> {
+  await mockDelay();
+  // This will be handled by the store
+  return null;
+}
+
+export async function updateSession(session: Session): Promise<Session> {
+  await mockDelay();
+  return session;
+}
+
+// ==================== INBOX API ====================
+
+export async function getInboxDrafts(status?: string): Promise<InboxDraft[]> {
+  await mockDelay();
+  // This will be handled by the store
+  return [];
+}
+
+export async function updateInboxDraft(draft: InboxDraft): Promise<InboxDraft> {
+  await mockDelay();
+  return draft;
+}
+
+export async function createInboxDraft(draft: Omit<InboxDraft, 'id' | 'createdAt'>): Promise<InboxDraft> {
+  await mockDelay();
+  const newDraft: InboxDraft = {
+    ...draft,
+    id: `draft-${Date.now()}`,
+    createdAt: new Date().toISOString(),
+  };
+  return newDraft;
+}
+
+export async function generateSampleDrafts(): Promise<InboxDraft[]> {
+  await mockDelay();
+  const sampleDrafts: Omit<InboxDraft, 'id' | 'createdAt'>[] = [
+    {
+      triggerType: 'milestone',
+      targetUserId: 'user-client-1',
+      subject: 'Congratulations on your milestone!',
+      previewText: 'Amazing work on reaching your fitness milestone...',
+      fullContent: 'Amazing work on reaching your fitness milestone! Keep up the great progress!',
+      status: 'needs_review',
+    },
+    {
+      triggerType: 'no_show_recovery',
+      targetUserId: 'user-client-2',
+      subject: 'We missed you today',
+      previewText: 'We noticed you missed your session today...',
+      fullContent: 'We noticed you missed your session today. No worries - let\'s reschedule and get back on track!',
+      status: 'needs_review',
+    },
+  ];
+  
+  return sampleDrafts.map(draft => ({
+    ...draft,
+    id: `draft-${Date.now()}-${Math.random()}`,
+    createdAt: new Date().toISOString(),
+  }));
 }

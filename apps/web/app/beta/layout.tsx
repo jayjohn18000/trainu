@@ -33,7 +33,7 @@ export default function BetaLayout({ children }: BetaLayoutProps) {
         Skip to main content
       </a>
 
-      <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-4 border-b border-border beta-nav px-4 sm:px-6">
+      <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-4 border-b border-border bg-background/95 backdrop-blur-sm px-4 sm:px-6">
         <div className="flex items-center gap-2 sm:gap-4">
           {/* Mobile menu button */}
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
@@ -80,8 +80,8 @@ export default function BetaLayout({ children }: BetaLayoutProps) {
       </header>
 
       {/* Desktop navigation */}
-      <div className="hidden lg:block border-b border-border">
-        <nav className="container mx-auto px-4 sm:px-6" role="navigation" aria-label="Main navigation">
+      <div className="hidden lg:block border-b border-border bg-background/95 backdrop-blur-sm">
+        <nav className="mx-auto px-4 sm:px-6 max-w-screen-2xl" role="navigation" aria-label="Main navigation">
           <div className="flex space-x-8">
             {betaNavItems.map((item) => (
               <Link
@@ -98,17 +98,17 @@ export default function BetaLayout({ children }: BetaLayoutProps) {
       </div>
 
       <main id="main-content" className="flex-1 overflow-auto pb-20 lg:pb-6">
-        <div className="p-4 sm:p-6">{children}</div>
+        <div className="mx-auto px-4 sm:px-6 py-6 max-w-screen-2xl">{children}</div>
       </main>
 
       {/* Mobile bottom navigation */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 border-t border-border beta-nav">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-card/95 backdrop-blur-sm pb-[env(safe-area-inset-bottom)]">
         <nav className="flex justify-around py-2" role="navigation" aria-label="Mobile navigation">
           {betaNavItems.slice(0, 4).map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="flex flex-col items-center py-2 px-3 text-xs hover:bg-accent rounded-md transition-colors focus:outline-none focus:bg-accent"
+              className="flex flex-col items-center py-2 px-3 text-xs hover:bg-accent rounded-md transition-colors focus:outline-none focus:bg-accent min-h-[44px] min-w-[44px] justify-center"
               aria-label={`Navigate to ${item.label}`}
             >
               {item.label}

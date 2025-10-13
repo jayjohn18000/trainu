@@ -4,232 +4,437 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, Flame, CheckCircle, TrendingUp, Calendar, Target } from "lucide-react";
 import { Ring } from "@/components/ui/ring";
 import { StreakDisplay } from "@/components/ui/streak-display";
-import { useAuthStore } from "@/lib/store/useAuthStore";
-import { toast } from "@/hooks/use-toast";
-
-interface DashboardMetrics {
-  communityRank: number;
-  weekStreak: number;
-  thisWeekSessions: number;
-  progressPercentage: number;
-  upcomingSession?: {
-    date: string;
-    time: string;
-    trainer: string;
-  };
-  weeklyProgress: {
-    completed: number;
-    total: number;
-  };
-  achievements: Array<{
-    id: string;
-    title: string;
-    date: string;
-    isNew: boolean;
-  }>;
-}
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Calendar, Clock, Plus, Target, Trophy, CheckCircle, XCircle } from "lucide-react";
+import { useMockStore } from "@/lib/mock/store";
+import { calculateStreak, calculateWeeklyProgress } from "@/lib/mock/metrics";
+import { mockBook, mockAttend, mockNoShow } from "@/lib/mock/api";
+import { useToast } from "@/hooks/use-toast";
+import type { Session, Goal, GoalEntry, CheckInType, RPELevel } from "@/lib/mock/types";
 
 export function ClientDashboard() {
-  const { user } = useAuthStore();
-  const [metrics, setMetrics] = useState<DashboardMetrics>({
-    communityRank: 12,
-    weekStreak: 0,
-    thisWeekSessions: 0,
-    progressPercentage: 0,
-    weeklyProgress: { completed: 0, total: 3 },
-    achievements: []
-  });
+  const { state, dispatch } = useMockStore();
+  const { toast } = useToast();
+  const [nextSession, setNextSession] = useState<Session | null>(null);
+  const [goals, setGoals] = useState<Goal[]>([]);
+  const [showCheckInDialog, setShowCheckInDialog] = useState(false);
+  const [showBookDialog, setShowBookDialog] = useState(false);
+  const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
+  const [checkInType, setCheckInType] = useState<CheckInType>('completed');
+  const [rpeLevel, setRPELevel] = useState<RPELevel>('right');
+  const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
-    // Load dashboard data
-    loadDashboardData();
-  }, []);
+    if (state.currentUser) {
+      // Get next session
+      const userSession = state.sessions.find(s => 
+        s.clientId === state.currentUser?.id && s.status === 'scheduled'
+      );
+      setNextSession(userSession || null);
 
-  const loadDashboardData = async () => {
-    // Mock data loading - replace with actual API calls
-    setMetrics({
-      communityRank: 12,
-      weekStreak: 0,
-      thisWeekSessions: 0,
-      progressPercentage: 0,
-      weeklyProgress: { completed: 0, total: 3 },
-      achievements: [
-        {
-          id: "1",
-          title: "🔥 3 Week Streak",
-          date: "Today",
-          isNew: true
-        },
-        {
-          id: "2",
-          title: "💪 10 Sessions",
-          date: "2 days ago",
-          isNew: false
+      // Get user goals
+      const userGoals = state.goals.filter(g => g.userId === state.currentUser?.id);
+      setGoals(userGoals);
+    }
+  }, [state.currentUser, state.sessions, state.goals]);
+
+  const userGoalEntries = state.goalEntries.filter(e => 
+    e.userId === state.currentUser?.id
+  );
+  
+  const streak = calculateStreak(userGoalEntries);
+  const weeklyProgress = goals.length > 0 ? 
+    calculateWeeklyProgress(userGoalEntries, goals[0].target) : 
+    { completed: 0, percentage: 0 };
+
+  const handleCheckIn = () => {
+    if (!selectedGoal || !state.currentUser) return;
+
+    const newEntry: GoalEntry = {
+      id: `entry-${Date.now()}`,
+      goalId: selectedGoal.id,
+      userId: state.currentUser.id,
+      type: checkInType,
+      rpe: checkInType === 'completed' ? rpeLevel : undefined,
+      date: new Date().toISOString().split('T')[0],
+    };
+
+    dispatch({ type: 'ADD_GOAL_ENTRY', payload: newEntry });
+    
+    // Update client progress
+    const currentProgress = state.clientProgress.find(cp => cp.userId === state.currentUser?.id);
+    if (currentProgress && checkInType === 'completed') {
+      dispatch({
+        type: 'UPDATE_CLIENT_PROGRESS',
+        payload: {
+          ...currentProgress,
+          completedThisWeek: currentProgress.completedThisWeek + 1,
+          lastCheckIn: new Date().toISOString(),
         }
-      ]
+      });
+    }
+
+    toast({
+      title: "Check-in Recorded",
+      description: `${checkInType} workout logged successfully`,
     });
+
+    setShowCheckInDialog(false);
+    setSelectedGoal(null);
   };
 
-  const handleBookSession = () => {
-    toast({
-      title: "Book a Session",
-      description: "Redirecting to booking calendar..."
-    });
+  const handleBookSession = async () => {
+    if (!state.currentUser) return;
+    setProcessing(true);
+
+    try {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const result = await mockBook({
+        userId: state.currentUser.id,
+        trainerId: 'user-trainer-1',
+        date: tomorrow.toISOString().split('T')[0],
+        time: '10:00',
+        type: 'Personal Training',
+      });
+
+      dispatch({ type: 'ADD_SESSION', payload: result.session });
+      dispatch({ type: 'ADD_INBOX_DRAFT', payload: result.draft });
+
+      toast({
+        title: "Session Booked",
+        description: "Your session has been booked. Pre-session reminder created!",
+      });
+
+      setShowBookDialog(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to book session",
+        variant: "destructive",
+      });
+    } finally {
+      setProcessing(false);
+    }
   };
 
-  const handleQuickCheckIn = () => {
-    toast({
-      title: "Quick Check-in",
-      description: "Opening check-in form..."
-    });
+  const handleMarkAttended = async () => {
+    if (!nextSession) return;
+    setProcessing(true);
+
+    try {
+      await mockAttend({ sessionId: nextSession.id });
+      
+      dispatch({
+        type: 'UPDATE_SESSION',
+        payload: { ...nextSession, status: 'completed' }
+      });
+
+      // Update progress
+      const currentProgress = state.clientProgress.find(cp => cp.userId === state.currentUser?.id);
+      if (currentProgress) {
+        dispatch({
+          type: 'UPDATE_CLIENT_PROGRESS',
+          payload: {
+            ...currentProgress,
+            completedThisWeek: currentProgress.completedThisWeek + 1,
+            streak: currentProgress.streak + 1,
+            lastCheckIn: new Date().toISOString(),
+          }
+        });
+      }
+
+      toast({
+        title: "Session Completed",
+        description: "Great job! Your attendance has been recorded.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to mark attended",
+        variant: "destructive",
+      });
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleMarkNoShow = async () => {
+    if (!nextSession || !state.currentUser) return;
+    setProcessing(true);
+
+    try {
+      const result = await mockNoShow({ sessionId: nextSession.id });
+      
+      dispatch({
+        type: 'UPDATE_SESSION',
+        payload: { ...nextSession, status: 'no_show' }
+      });
+
+      // Create recovery draft
+      const recoveryDraft = {
+        ...result.draft,
+        targetUserId: state.currentUser.id,
+      };
+      dispatch({ type: 'ADD_INBOX_DRAFT', payload: recoveryDraft });
+
+      // Reset streak
+      const currentProgress = state.clientProgress.find(cp => cp.userId === state.currentUser?.id);
+      if (currentProgress) {
+        dispatch({
+          type: 'UPDATE_CLIENT_PROGRESS',
+          payload: {
+            ...currentProgress,
+            streak: 0,
+          }
+        });
+      }
+
+      toast({
+        title: "Marked as No-Show",
+        description: "Recovery message created to help you get back on track.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to mark no-show",
+        variant: "destructive",
+      });
+    } finally {
+      setProcessing(false);
+    }
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8">
-      {/* Header */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold">My Dashboard</h1>
-        <p className="text-muted-foreground">
-          Keep pushing! You're doing amazing 💪
-        </p>
+    <div className="p-6 space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-foreground">My Dashboard</h1>
+        <p className="text-muted-foreground">Track your progress and stay motivated</p>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {/* Community Rank */}
-        <Card className="p-6 bg-gradient-to-br from-gray-800 to-gray-900 border-gray-700">
-          <div className="flex items-center justify-between">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Trophy className="h-5 w-5 text-yellow-500" />
-                <span className="text-sm font-medium text-muted-foreground">
-                  Community Rank
-                </span>
-              </div>
-              <div className="text-3xl font-bold text-white">
-                #{metrics.communityRank}
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        {/* Week Streak */}
-        <Card className="p-6 bg-gradient-to-br from-red-800 to-orange-800 border-red-700">
-          <div className="flex items-center justify-between">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Flame className="h-5 w-5 text-orange-400" />
-                <span className="text-sm font-medium text-muted-foreground">
-                  Week Streak
-                </span>
-              </div>
-              <div className="text-3xl font-bold text-white">
-                {metrics.weekStreak}
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        {/* This Week */}
-        <Card className="p-6 bg-gradient-to-br from-green-800 to-green-900 border-green-700">
-          <div className="flex items-center justify-between">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 text-green-400" />
-                <span className="text-sm font-medium text-muted-foreground">
-                  This Week
-                </span>
-              </div>
-              <div className="text-3xl font-bold text-white">
-                {metrics.thisWeekSessions}
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        {/* Progress */}
-        <Card className="p-6 bg-gradient-to-br from-purple-800 to-blue-800 border-purple-700">
-          <div className="flex items-center justify-between">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-purple-400" />
-                <span className="text-sm font-medium text-muted-foreground">
-                  Progress
-                </span>
-              </div>
-              <div className="text-3xl font-bold text-white">
-                {metrics.progressPercentage}%
-              </div>
-            </div>
-          </div>
-        </Card>
-      </div>
-
-      {/* Main Content Cards */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* No Upcoming Sessions / Book Session */}
+      {/* Today Card */}
+      {nextSession ? (
         <Card className="p-6">
-          <div className="flex items-center justify-center h-full min-h-[200px]">
-            <div className="text-center space-y-4">
-              <Calendar className="h-12 w-12 text-muted-foreground mx-auto" />
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold">No upcoming sessions</h3>
-                <Button onClick={handleBookSession} className="w-full">
-                  Book a Session
-                </Button>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-primary/10 rounded-lg">
+                <Calendar className="h-6 w-6 text-primary" />
               </div>
+              <div>
+                <h3 className="text-lg font-semibold">Next Session</h3>
+                <p className="text-muted-foreground">
+                  {nextSession.type} with Sarah Chen
+                </p>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Clock className="h-4 w-4" />
+                  {nextSession.date} at {nextSession.time}
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleMarkAttended}
+                disabled={processing}
+                className="gap-1"
+              >
+                <CheckCircle className="h-4 w-4" />
+                Mark Attended
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleMarkNoShow}
+                disabled={processing}
+                className="gap-1"
+              >
+                <XCircle className="h-4 w-4" />
+                No-Show
+              </Button>
             </div>
           </div>
         </Card>
-
-        {/* This Week's Progress */}
+      ) : (
         <Card className="p-6">
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">This Week's Progress</h3>
-            <div className="flex items-center justify-center">
-              <Ring
-                percentage={(metrics.weeklyProgress.completed / metrics.weeklyProgress.total) * 100}
-                size={120}
-                label={`${metrics.weeklyProgress.completed}/${metrics.weeklyProgress.total} sessions`}
-                className="text-blue-500"
-              />
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold">No Upcoming Session</h3>
+              <p className="text-muted-foreground">Book a session to get started</p>
             </div>
-            <Button onClick={handleQuickCheckIn} className="w-full" variant="outline">
-              + Quick Check-in
+            <Button onClick={() => setShowBookDialog(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Book Session
             </Button>
           </div>
         </Card>
+      )}
+
+      {/* Progress Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Consistency Ring */}
+        <Card className="p-6 text-center">
+          <h3 className="text-lg font-semibold mb-4">This Week</h3>
+          <Ring
+            percentage={weeklyProgress.percentage}
+            label={weeklyProgress.completed.toString()}
+            sublabel={`of ${goals[0]?.target || 0} sessions`}
+          />
+        </Card>
+
+        {/* Streak */}
+        <Card className="p-6 text-center">
+          <h3 className="text-lg font-semibold mb-4">Current Streak</h3>
+          <StreakDisplay weeks={streak} />
+        </Card>
+
+        {/* Personal Goal */}
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <Target className="h-5 w-5" />
+            Personal Goal
+          </h3>
+          {goals.length > 0 ? (
+            <div className="space-y-4">
+              <div>
+                <p className="font-medium">{goals[0].name}</p>
+                <p className="text-sm text-muted-foreground">
+                  Target: {goals[0].target} {goals[0].unit}/week
+                </p>
+              </div>
+              <Button
+                onClick={() => {
+                  setSelectedGoal(goals[0]);
+                  setShowCheckInDialog(true);
+                }}
+                className="w-full gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Add Entry
+              </Button>
+            </div>
+          ) : (
+            <div className="text-center text-muted-foreground">
+              <p>No active goals</p>
+              <Button variant="outline" size="sm" className="mt-2">
+                Create Goal
+              </Button>
+            </div>
+          )}
+        </Card>
       </div>
 
-      {/* Recent Achievements */}
+      {/* Coach Notes */}
       <Card className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">Recent Achievements</h3>
-          <Button variant="ghost" size="sm">
-            View All
-          </Button>
-        </div>
-        <div className="space-y-3">
-          {metrics.achievements.map((achievement) => (
-            <div key={achievement.id} className="flex items-center justify-between p-3 rounded-lg bg-muted">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">{achievement.title}</span>
-                  {achievement.isNew && (
-                    <Badge variant="secondary" className="text-xs">
-                      New!
-                    </Badge>
-                  )}
-                </div>
-                <p className="text-sm text-muted-foreground">{achievement.date}</p>
-              </div>
-            </div>
-          ))}
+        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+          <Trophy className="h-5 w-5" />
+          Coach Notes
+        </h3>
+        <div className="space-y-4">
+          <div className="p-4 bg-muted/50 rounded-lg">
+            <p className="text-sm">
+              "Great progress this week! Your consistency is really showing. 
+              Focus on maintaining proper form during your deadlifts."
+            </p>
+            <p className="text-xs text-muted-foreground mt-2">- Sarah Chen, 2 days ago</p>
+          </div>
+          <div className="p-4 bg-muted/50 rounded-lg">
+            <p className="text-sm">
+              "Consider adding more protein to your post-workout meals to 
+              support muscle recovery."
+            </p>
+            <p className="text-xs text-muted-foreground mt-2">- Sarah Chen, 1 week ago</p>
+          </div>
         </div>
       </Card>
+
+      {/* Check-in Dialog */}
+      <Dialog open={showCheckInDialog} onOpenChange={setShowCheckInDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Goal Entry</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Check-in Type</label>
+              <div className="flex gap-2 mt-2">
+                {(['completed', 'partial', 'missed'] as CheckInType[]).map((type) => (
+                  <Button
+                    key={type}
+                    variant={checkInType === type ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setCheckInType(type)}
+                  >
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            
+            {checkInType === 'completed' && (
+              <div>
+                <label className="text-sm font-medium">RPE Level</label>
+                <div className="flex gap-2 mt-2">
+                  {(['light', 'right', 'hard'] as RPELevel[]).map((rpe) => (
+                    <Button
+                      key={rpe}
+                      variant={rpeLevel === rpe ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setRPELevel(rpe)}
+                    >
+                      {rpe.charAt(0).toUpperCase() + rpe.slice(1)}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowCheckInDialog(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleCheckIn}>
+                Save Entry
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Book Session Dialog */}
+      <Dialog open={showBookDialog} onOpenChange={setShowBookDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Book a Session</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-muted-foreground">
+              Book a Personal Training session with Sarah Chen for tomorrow at 10:00 AM
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowBookDialog(false)}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleBookSession}
+                disabled={processing}
+              >
+                {processing ? 'Booking...' : 'Confirm Booking'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

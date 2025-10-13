@@ -1,373 +1,287 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { MessageSquare, Heart, Image as ImageIcon, Pin } from "lucide-react";
-import { useAuthStore } from "@/lib/store/useAuthStore";
-import { toast } from "@/hooks/use-toast";
-import { formatDistanceToNow } from "date-fns";
-
-interface Post {
-  id: string;
-  type: "thread" | "announcement";
-  authorId: string;
-  authorName: string;
-  authorAvatar?: string;
-  content: string;
-  imageUrl?: string;
-  createdAt: string;
-  reactions: number;
-  comments: number;
-}
-
-interface Comment {
-  id: string;
-  postId: string;
-  authorId: string;
-  authorName: string;
-  authorAvatar?: string;
-  content: string;
-  createdAt: string;
-}
-
-interface Reaction {
-  id: string;
-  postId: string;
-  userId: string;
-  emoji: string;
-}
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Pin, Heart, MessageCircle, Share, Image as ImageIcon } from "lucide-react";
+import { useMockStore } from "@/lib/mock/store";
+import { createPost, addComment, addReaction, removeReaction } from "@/lib/mock/api";
 
 export function CommunityFeed() {
-  const { user } = useAuthStore();
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [comments, setComments] = useState<Map<string, Comment[]>>(new Map());
-  const [reactions, setReactions] = useState<Map<string, Reaction[]>>(new Map());
+  const { state, dispatch } = useMockStore();
   const [newPostContent, setNewPostContent] = useState("");
-  const [newPostImage, setNewPostImage] = useState("");
-  const [isAnnouncement, setIsAnnouncement] = useState(false);
-  const [showComposer, setShowComposer] = useState(false);
-  const [expandedPosts, setExpandedPosts] = useState<Set<string>>(new Set());
+  const [newPostType, setNewPostType] = useState<'thread' | 'announcement'>('thread');
+  const [commentContent, setCommentContent] = useState("");
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadPosts();
-  }, []);
+  const currentUser = state.currentUser;
+  const isMember = currentUser?.isMember ?? false;
 
-  const loadPosts = async () => {
-    // Mock data - replace with actual API call
-    const mockPosts: Post[] = [
-      {
-        id: "1",
-        type: "announcement",
-        authorId: "admin-1",
-        authorName: "Alex Johnson",
-        authorAvatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
-        content: "Welcome to our new community platform! Share your wins, ask questions, and connect with fellow members. 🎉",
-        createdAt: "2024-10-01T10:00:00Z",
-        reactions: 12,
-        comments: 5
-      },
-      {
-        id: "2",
-        type: "thread",
-        authorId: "user-1",
-        authorName: "Emily Davis",
-        authorAvatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
-        content: "Question for the group: What are your favorite pre-workout meals?",
-        createdAt: "2024-10-06T14:30:00Z",
-        reactions: 8,
-        comments: 12
-      },
-      {
-        id: "3",
-        type: "thread",
-        authorId: "user-2",
-        authorName: "Mike Rodriguez",
-        authorAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
-        content: "Just hit a new PR on deadlifts! 405lbs 💪 Feeling stronger every week!",
-        createdAt: "2024-10-05T16:45:00Z",
-        reactions: 15,
-        comments: 7
-      }
-    ];
-
-    setPosts(mockPosts);
-  };
+  // Sort posts: announcements first (pinned), then by date
+  const sortedPosts = [...state.posts].sort((a, b) => {
+    if (a.isPinned && !b.isPinned) return -1;
+    if (!a.isPinned && b.isPinned) return 1;
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
 
   const handleCreatePost = async () => {
-    if (!user || !newPostContent.trim()) return;
-    
-    const isPrivileged = user.role === 'trainer' || user.role === 'gym_admin';
-    if (!user.isMember && !isPrivileged) {
-      toast({
-        title: "Membership required",
-        description: "You need to be a member to post in the community.",
-        variant: "destructive",
-      });
-      return;
-    }
+    if (!newPostContent.trim() || !currentUser) return;
 
-    const newPost: Post = {
-      id: Date.now().toString(),
-      type: (isAnnouncement && user.role === 'gym_admin') ? 'announcement' : 'thread',
-      authorId: user.id,
-      authorName: user.name,
-      authorAvatar: user.avatarUrl,
+    const newPost = await createPost({
+      type: newPostType,
+      authorId: currentUser.id,
       content: newPostContent,
-      imageUrl: newPostImage || undefined,
-      createdAt: new Date().toISOString(),
-      reactions: 0,
-      comments: 0
-    };
+    });
 
-    setPosts(prev => [newPost, ...prev]);
+    dispatch({ type: 'ADD_POST', payload: newPost });
     setNewPostContent("");
-    setNewPostImage("");
-    setIsAnnouncement(false);
-    setShowComposer(false);
-    
-    toast({
-      title: "Posted!",
-      description: "Your post has been shared with the community.",
-    });
   };
 
-  const handleReaction = async (postId: string) => {
-    if (!user) return;
-    
-    // Mock reaction toggle
-    setPosts(prev => prev.map(post => 
-      post.id === postId 
-        ? { ...post, reactions: post.reactions + 1 }
-        : post
-    ));
-    
-    toast({
-      title: "Reaction added",
-      description: "Thanks for engaging with the community!"
-    });
-  };
+  const handleAddComment = async (postId: string) => {
+    if (!commentContent.trim() || !currentUser) return;
 
-  const handleComment = async (postId: string, content: string) => {
-    if (!user || !content.trim()) return;
-    
-    const newComment: Comment = {
-      id: Date.now().toString(),
+    const newComment = await addComment({
       postId,
-      authorId: user.id,
-      authorName: user.name,
-      authorAvatar: user.avatarUrl,
-      content,
-      createdAt: new Date().toISOString()
-    };
-
-    setComments(prev => {
-      const newComments = new Map(prev);
-      const existingComments = newComments.get(postId) || [];
-      newComments.set(postId, [...existingComments, newComment]);
-      return newComments;
+      authorId: currentUser.id,
+      content: commentContent,
     });
 
-    setPosts(prev => prev.map(post => 
-      post.id === postId 
-        ? { ...post, comments: post.comments + 1 }
-        : post
-    ));
+    dispatch({ type: 'ADD_COMMENT', payload: newComment });
+    setCommentContent("");
+    setReplyingTo(null);
   };
 
-  const togglePostExpansion = (postId: string) => {
-    const newExpanded = new Set(expandedPosts);
-    if (newExpanded.has(postId)) {
-      newExpanded.delete(postId);
+  const handleToggleReaction = async (postId: string, emoji: string) => {
+    if (!currentUser) return;
+
+    const existingReaction = state.reactions.find(
+      r => r.postId === postId && r.userId === currentUser.id
+    );
+
+    if (existingReaction) {
+      await removeReaction(postId, currentUser.id);
+      dispatch({ type: 'REMOVE_REACTION', payload: { postId, userId: currentUser.id } });
     } else {
-      newExpanded.add(postId);
+      const newReaction = await addReaction({
+        postId,
+        userId: currentUser.id,
+        emoji,
+      });
+      dispatch({ type: 'ADD_REACTION', payload: newReaction });
     }
-    setExpandedPosts(newExpanded);
   };
 
-  const canPost = user && (user.isMember || user.role === 'trainer' || user.role === 'gym_admin');
+  const getUserName = (userId: string) => {
+    const user = state.users.find(u => u.id === userId);
+    return user?.name || 'Unknown User';
+  };
+
+  const getUserAvatar = (userId: string) => {
+    const user = state.users.find(u => u.id === userId);
+    return user?.avatarUrl || '/placeholder.svg';
+  };
+
+  const getPostReactions = (postId: string) => {
+    const reactions = state.reactions.filter(r => r.postId === postId);
+    const reactionCounts = reactions.reduce((acc, reaction) => {
+      acc[reaction.emoji] = (acc[reaction.emoji] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    return reactionCounts;
+  };
+
+  const getPostComments = (postId: string) => {
+    return state.comments.filter(c => c.postId === postId);
+  };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold">Community</h1>
-          <p className="text-muted-foreground">Connect with fellow members</p>
-        </div>
-        {canPost && (
-          <Dialog open={showComposer} onOpenChange={setShowComposer}>
-            <DialogTrigger asChild>
-              <Button>New Post</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create Post</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 pt-4">
-                <Textarea
-                  placeholder="What's on your mind?"
-                  value={newPostContent}
-                  onChange={(e) => setNewPostContent(e.target.value)}
-                  rows={4}
-                />
-                <Input
-                  placeholder="Image URL (optional)"
-                  value={newPostImage}
-                  onChange={(e) => setNewPostImage(e.target.value)}
-                />
-                {user?.role === 'gym_admin' && (
-                  <label className="flex items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={isAnnouncement}
-                      onChange={(e) => setIsAnnouncement(e.target.checked)}
-                      className="rounded"
-                    />
-                    Post as announcement
-                  </label>
-                )}
-                <Button onClick={handleCreatePost} className="w-full">
-                  Post
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        )}
+    <div className="p-6 space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-foreground">Community</h1>
+        <p className="text-muted-foreground">Connect with trainers and clients</p>
       </div>
 
-      {/* Membership Notice */}
-      {!canPost && (
-        <Card className="p-4 bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800">
-          <p className="text-sm text-amber-900 dark:text-amber-100">
-            Membership required for posting. You can read posts but need to be a member to participate.
+      {/* Membership Gating */}
+      {!isMember && (
+        <Card className="p-6 bg-warning-muted border-warning">
+          <div className="flex items-center gap-2 text-warning">
+            <Pin className="h-5 w-5" />
+            <span className="font-medium">Read-only Mode</span>
+          </div>
+          <p className="text-warning mt-2">
+            Become a member to post and interact with the community.
           </p>
         </Card>
       )}
 
-      {/* Posts Feed */}
-      <div className="space-y-4">
-        {posts.map(post => {
-          const postComments = comments.get(post.id) || [];
-          const isExpanded = expandedPosts.has(post.id);
+      {/* Post Composer */}
+      {isMember && (
+        <Card className="p-6">
+          <div className="space-y-4">
+            <div className="flex gap-2">
+              <Button
+                variant={newPostType === 'thread' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setNewPostType('thread')}
+              >
+                Thread
+              </Button>
+              <Button
+                variant={newPostType === 'announcement' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setNewPostType('announcement')}
+              >
+                Announcement
+              </Button>
+            </div>
+            <Textarea
+              placeholder="What's on your mind?"
+              value={newPostContent}
+              onChange={(e) => setNewPostContent(e.target.value)}
+              className="min-h-[100px]"
+            />
+            <div className="flex justify-between items-center">
+              <Button variant="outline" size="sm">
+                <ImageIcon className="h-4 w-4 mr-2" />
+                Add Image
+              </Button>
+              <Button onClick={handleCreatePost} disabled={!newPostContent.trim()}>
+                Post
+              </Button>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Feed */}
+      <div className="space-y-6">
+        {sortedPosts.map((post) => {
+          const authorName = getUserName(post.authorId);
+          const authorAvatar = getUserAvatar(post.authorId);
+          const reactions = getPostReactions(post.id);
+          const comments = getPostComments(post.id);
 
           return (
             <Card key={post.id} className="p-6">
-              <div className="space-y-4">
-                {/* Post Header */}
-                <div className="flex items-start gap-3">
-                  <Avatar>
-                    <AvatarImage src={post.authorAvatar} />
-                    <AvatarFallback>{post.authorName.substring(0, 2).toUpperCase()}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold">{post.authorName}</span>
-                      {post.type === 'announcement' && (
-                        <Badge variant="secondary" className="gap-1">
-                          <Pin className="h-3 w-3" />
-                          Announcement
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Post Content */}
-                <p className="text-foreground whitespace-pre-wrap">{post.content}</p>
-                
-                {/* Post Image */}
-                {post.imageUrl && (
-                  <img 
-                    src={post.imageUrl} 
-                    alt="Post image" 
-                    className="rounded-lg max-h-96 object-cover w-full"
-                  />
-                )}
-
-                {/* Post Actions */}
-                <div className="flex items-center gap-4 pt-2 border-t">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleReaction(post.id)}
-                    className="gap-1"
-                  >
-                    <Heart className="h-4 w-4" />
-                    {post.reactions > 0 && post.reactions}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => togglePostExpansion(post.id)}
-                    className="gap-1"
-                  >
-                    <MessageSquare className="h-4 w-4" />
-                    {post.comments > 0 && post.comments}
-                  </Button>
-                </div>
-
-                {/* Comments Section */}
-                {isExpanded && (
-                  <div className="space-y-3 pt-3 border-t">
-                    {postComments.map(comment => (
-                      <div key={comment.id} className="flex gap-2">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={comment.authorAvatar} />
-                          <AvatarFallback>
-                            {comment.authorName.substring(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 bg-muted rounded-lg p-3">
-                          <p className="text-sm font-medium">{comment.authorName}</p>
-                          <p className="text-sm text-foreground">{comment.content}</p>
-                        </div>
-                      </div>
-                    ))}
-                    
-                    {canPost && (
-                      <div className="flex gap-2">
-                        <Input
-                          placeholder="Write a comment..."
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                              e.preventDefault();
-                              handleComment(post.id, e.currentTarget.value);
-                              e.currentTarget.value = '';
-                            }
-                          }}
-                        />
-                      </div>
+              <div className="flex gap-4">
+                <Avatar>
+                  <AvatarImage src={authorAvatar} />
+                  <AvatarFallback>{authorName.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{authorName}</span>
+                    <Badge variant={post.type === 'announcement' ? 'default' : 'secondary'}>
+                      {post.type}
+                    </Badge>
+                    {post.isPinned && (
+                      <Badge variant="outline" className="gap-1">
+                        <Pin className="h-3 w-3" />
+                        Pinned
+                      </Badge>
                     )}
+                    <span className="text-sm text-muted-foreground">
+                      {new Date(post.createdAt).toLocaleDateString()}
+                    </span>
                   </div>
-                )}
+                  
+                  <p className="text-foreground">{post.content}</p>
+                  
+                  {post.imageUrl && (
+                    <div className="rounded-lg overflow-hidden">
+                      <img 
+                        src={post.imageUrl} 
+                        alt="Post image" 
+                        className="w-full h-64 object-cover"
+                      />
+                    </div>
+                  )}
+
+                  {/* Reactions */}
+                  <div className="flex items-center gap-4">
+                    {Object.entries(reactions).map(([emoji, count]) => (
+                      <Button
+                        key={emoji}
+                        variant="ghost"
+                        size="sm"
+                        className="gap-1"
+                        onClick={() => handleToggleReaction(post.id, emoji)}
+                      >
+                        <span>{emoji}</span>
+                        <span>{count}</span>
+                      </Button>
+                    ))}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleToggleReaction(post.id, '❤️')}
+                    >
+                      <Heart className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setReplyingTo(replyingTo === post.id ? null : post.id)}
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                      {comments.length}
+                    </Button>
+                    <Button variant="ghost" size="sm">
+                      <Share className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  {/* Comments */}
+                  {comments.length > 0 && (
+                    <div className="space-y-3 pt-3 border-t">
+                      {comments.map((comment) => (
+                        <div key={comment.id} className="flex gap-3">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={getUserAvatar(comment.authorId)} />
+                            <AvatarFallback>{getUserName(comment.authorId).charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium">{getUserName(comment.authorId)}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {new Date(comment.createdAt).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <p className="text-sm text-foreground">{comment.content}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Comment Input */}
+                  {replyingTo === post.id && isMember && (
+                    <div className="pt-3 border-t">
+                      <div className="flex gap-2">
+                        <Textarea
+                          placeholder="Write a comment..."
+                          value={commentContent}
+                          onChange={(e) => setCommentContent(e.target.value)}
+                          className="flex-1"
+                        />
+                        <Button 
+                          onClick={() => handleAddComment(post.id)}
+                          disabled={!commentContent.trim()}
+                        >
+                          Comment
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </Card>
           );
         })}
       </div>
-
-      {posts.length === 0 && (
-        <div className="text-center py-12">
-          <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">No posts yet</h3>
-          <p className="text-muted-foreground">Be the first to start a conversation!</p>
-        </div>
-      )}
     </div>
   );
 }

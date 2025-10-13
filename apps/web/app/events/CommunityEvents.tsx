@@ -1,75 +1,43 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, Calendar, MapPin, Users } from "lucide-react";
-import { useAuthStore } from "@/lib/store/useAuthStore";
-import { toast } from "@/hooks/use-toast";
-
-interface Event {
-  id: string;
-  title: string;
-  description: string;
-  date: string;
-  time: string;
-  location: string;
-  spots: number;
-  price: number;
-  imageUrl: string;
-  category: string;
-}
+import { Calendar, Clock, MapPin, Users, ExternalLink } from "lucide-react";
+import { useMockStore } from "@/lib/mock/store";
+import { registerForEvent } from "@/lib/mock/api";
 
 export function CommunityEvents() {
-  const { user } = useAuthStore();
-  const [events, setEvents] = useState<Event[]>([]);
+  const { state, dispatch } = useMockStore();
+  const [registering, setRegistering] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadEvents();
-  }, []);
+  const currentUser = state.currentUser;
 
-  const loadEvents = async () => {
-    // Mock data - replace with actual API call
-    const mockEvents: Event[] = [
-      {
-        id: "1",
-        title: "Summer Strength Challenge",
-        description: "Join us for our annual strength challenge! Test your 1RM on the big 3 lifts.",
-        date: "2024-10-20",
-        time: "10:00 AM",
-        location: "Main Gym",
-        spots: 50,
-        price: 25,
-        imageUrl: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=200&fit=crop",
-        category: "Competition"
-      },
-      {
-        id: "2",
-        title: "Nutrition Workshop with Dr. Smith",
-        description: "Learn the fundamentals of sports nutrition and meal planning for optimal performance.",
-        date: "2024-10-27",
-        time: "6:00 PM",
-        location: "Conference Room A",
-        spots: 30,
-        price: 15,
-        imageUrl: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400&h=200&fit=crop",
-        category: "Workshop"
-      }
-    ];
+  const handleRegisterForEvent = async (eventId: string) => {
+    if (!currentUser) return;
 
-    setEvents(mockEvents);
+    setRegistering(eventId);
+    
+    try {
+      const registration = await registerForEvent(eventId, currentUser.id);
+      dispatch({ type: 'REGISTER_EVENT', payload: registration });
+    } catch (error) {
+      console.error('Failed to register for event:', error);
+    } finally {
+      setRegistering(null);
+    }
   };
 
-  const handleBuyTicket = (event: Event) => {
-    toast({
-      title: "Buy Ticket",
-      description: `Redirecting to purchase ${event.title} ticket...`
-    });
+  const isRegistered = (eventId: string) => {
+    if (!currentUser) return false;
+    return state.eventRegistrations.some(
+      reg => reg.eventId === eventId && reg.userId === currentUser.id
+    );
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
     return date.toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',
@@ -78,77 +46,111 @@ export function CommunityEvents() {
     });
   };
 
+  const formatTime = (timeStr: string) => {
+    const [hours, minutes] = timeStr.split(':');
+    const date = new Date();
+    date.setHours(parseInt(hours), parseInt(minutes));
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
   return (
-    <div className="max-w-7xl mx-auto space-y-8">
-      {/* Header */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold">Community Events</h1>
-        <p className="text-muted-foreground">
-          Join us for workshops, challenges, and social gatherings
-        </p>
+    <div className="p-6 space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-foreground">Events</h1>
+        <p className="text-muted-foreground">Discover and join upcoming fitness events</p>
       </div>
 
-      {/* Events Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {events.map(event => (
-          <Card key={event.id} className="overflow-hidden hover:shadow-lg transition-all">
-            <div className="relative">
-              <img 
-                src={event.imageUrl} 
-                alt={event.title}
-                className="w-full h-48 object-cover"
-              />
-              <Badge className="absolute top-3 left-3 bg-black/70 text-white">
-                {event.category}
-              </Badge>
-            </div>
-            
-            <div className="p-6 space-y-4">
-              <div className="space-y-2">
-                <h3 className="text-xl font-semibold">{event.title}</h3>
-                <p className="text-muted-foreground line-clamp-3">
-                  {event.description}
-                </p>
-              </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+        {state.events.map((event) => {
+          const registered = isRegistered(event.id);
+          const isRegistering = registering === event.id;
 
-              {/* Event Details */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span>{formatDate(event.date)} at {event.time}</span>
+          return (
+            <Card key={event.id} className="overflow-hidden">
+              {event.imageUrl && (
+                <div className="h-48 bg-muted">
+                  <img 
+                    src={event.imageUrl} 
+                    alt={event.title}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <span>{event.location}</span>
+              )}
+              <div className="p-6 space-y-4">
+                <div>
+                  <h3 className="text-xl font-semibold">{event.title}</h3>
+                  <p className="text-muted-foreground text-sm mt-1">
+                    {event.description}
+                  </p>
                 </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                  <span>{event.spots} spots available</span>
-                </div>
-              </div>
 
-              {/* Price and Action */}
-              <div className="flex items-center justify-between pt-4 border-t">
-                <div className="text-2xl font-bold">${event.price}</div>
-                <Button 
-                  onClick={() => handleBuyTicket(event)}
-                  className="gap-2"
-                >
-                  Buy Ticket
-                  <ExternalLink className="h-4 w-4" />
-                </Button>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Calendar className="h-4 w-4" />
+                    {formatDate(event.date)}
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Clock className="h-4 w-4" />
+                    {formatTime(event.time)}
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <MapPin className="h-4 w-4" />
+                    {event.location}
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Users className="h-4 w-4" />
+                    {event.capacity} spots available
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-4">
+                  <div className="text-2xl font-bold text-primary">
+                    ${event.price}
+                  </div>
+                  
+                  {registered ? (
+                    <Badge variant="default" className="gap-1">
+                      <Calendar className="h-3 w-3" />
+                      Registered
+                    </Badge>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => handleRegisterForEvent(event.id)}
+                        disabled={isRegistering}
+                        className="gap-1"
+                      >
+                        {isRegistering ? 'Registering...' : 'Buy Ticket'}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(event.ticketUrl, '_blank')}
+                        className="gap-1"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          );
+        })}
       </div>
 
-      {events.length === 0 && (
-        <div className="text-center py-12">
+      {state.events.length === 0 && (
+        <Card className="p-12 text-center">
           <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <h3 className="text-lg font-semibold mb-2">No events scheduled</h3>
-          <p className="text-muted-foreground">Check back soon for upcoming community events!</p>
-        </div>
+          <p className="text-muted-foreground">
+            Check back later for upcoming fitness events and workshops.
+          </p>
+        </Card>
       )}
     </div>
   );

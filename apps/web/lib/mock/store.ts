@@ -204,6 +204,8 @@ export function MockProvider({ children }: { children: ReactNode }) {
 
   // Load data from localStorage on mount
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     const savedData = localStorage.getItem('trainu-beta-mock-data');
     if (savedData) {
       try {
@@ -220,6 +222,7 @@ export function MockProvider({ children }: { children: ReactNode }) {
 
   // Save data to localStorage whenever state changes
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     localStorage.setItem('trainu-beta-mock-data', JSON.stringify(state));
   }, [state]);
 

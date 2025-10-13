@@ -2,10 +2,10 @@ import { useRouter, usePathname } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuthStore } from "@/lib/store/useAuthStore";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Calendar, MessageSquare } from "lucide-react";
+import { Home, Sparkles, Users, Settings as SettingsIcon } from "lucide-react";
 import { ScreenReaderOnly } from "./system/ScreenReaderOnly";
 
-type MainTab = "dashboard" | "schedule" | "communication";
+type MainTab = "home" | "inbox" | "community" | "settings";
 
 interface SubTab {
   label: string;
@@ -18,31 +18,39 @@ interface TabNavigationProps {
   onNavigate?: () => void;
 }
 
-const mainTabs: { value: MainTab; label: string; icon: typeof LayoutDashboard }[] = [
-  { value: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { value: "schedule", label: "Schedule", icon: Calendar },
-  { value: "communication", label: "Communication", icon: MessageSquare },
-];
+// Main tabs configuration - conditionally shown based on role
+const getMainTabs = (userRole?: string) => {
+  const tabs: { value: MainTab; label: string; icon: typeof Home; roles?: string[] }[] = [
+    { value: "home", label: "Home", icon: Home },
+    { value: "inbox", label: "Nudges", icon: Sparkles, roles: ["trainer", "gym_admin"] },
+    { value: "community", label: "Community", icon: Users },
+    { value: "settings", label: "Settings", icon: SettingsIcon },
+  ];
+  
+  return tabs.filter(tab => !tab.roles || tab.roles.includes(userRole || ''));
+};
 
 const subTabs: Record<MainTab, SubTab[]> = {
-  dashboard: [
-    { label: "Overview", path: "/dashboard/client", roles: ["client"] },
-    { label: "Discover", path: "/dashboard/discover", roles: ["client"] },
-    { label: "Overview", path: "/dashboard/trainer", roles: ["trainer"] },
-    { label: "Overview", path: "/dashboard/gym-admin", roles: ["gym_admin"] },
+  home: [
+    { label: "Dashboard", path: "/me", roles: ["client"] },
+    { label: "Discover", path: "/discover", roles: ["client"] },
+    { label: "Dashboard", path: "/dashboard/trainer", roles: ["trainer"] },
+    { label: "My Clients", path: "/dashboard/clients", roles: ["trainer"] },
+    { label: "Dashboard", path: "/dashboard/gym-admin", roles: ["gym_admin"] },
   ],
-  schedule: [
-    { label: "Calendar", path: "/dashboard/calendar" },
-    { label: "Events", path: "/dashboard/community/events", roles: ["client"] },
-    { label: "Clients", path: "/dashboard/clients", roles: ["trainer", "gym_admin"] },
-    { label: "Workouts", path: "/dashboard/workout", roles: ["client"] },
-    { label: "Programs", path: "/dashboard/programs", roles: ["trainer", "gym_admin"] },
-    { label: "Progress", path: "/dashboard/progress", roles: ["client"] },
+  inbox: [
+    { label: "Nudges", path: "/inbox", roles: ["trainer", "gym_admin"] },
+    { label: "Activity", path: "/inbox/activity", roles: ["client"] },
   ],
-  communication: [
-    { label: "Messages", path: "/dashboard/messages" },
-    { label: "People", path: "/dashboard/community/people" },
-    { label: "Groups", path: "/dashboard/community/groups" },
+  community: [
+    { label: "Feed", path: "/community" },
+    { label: "Events", path: "/events" },
+    { label: "People", path: "/community/people" },
+    { label: "Store", path: "/store" },
+  ],
+  settings: [
+    { label: "Profile", path: "/settings" },
+    { label: "Dev Tools", path: "/dev/flags", roles: ["gym_admin"] },
   ],
 };
 
@@ -54,25 +62,10 @@ export function TabNavigation({ isMobile = false, onNavigate }: TabNavigationPro
   // Determine active main tab based on current path
   const getActiveMainTab = (): MainTab => {
     const path = pathname;
-    // Check schedule routes first (more specific)
-    if (
-      path.startsWith("/dashboard/calendar") ||
-      path.startsWith("/dashboard/workout") ||
-      path.startsWith("/dashboard/progress") ||
-      path.startsWith("/dashboard/clients") ||
-      path.startsWith("/dashboard/programs") ||
-      path.startsWith("/dashboard/community/events")
-    )
-      return "schedule";
-    // Check communication routes
-    if (
-      path.startsWith("/dashboard/messages") ||
-      path.startsWith("/dashboard/community/people") ||
-      path.startsWith("/dashboard/community/groups")
-    )
-      return "communication";
-    // Default to dashboard (includes /dashboard, /dashboard/client, /dashboard/trainer, /dashboard/discover)
-    return "dashboard";
+    if (path.startsWith("/inbox")) return "inbox";
+    if (path.startsWith("/community") || path.startsWith("/events") || path.startsWith("/store")) return "community";
+    if (path.startsWith("/settings") || path.startsWith("/dev/flags")) return "settings";
+    return "home";
   };
 
   const activeMainTab = getActiveMainTab();
@@ -101,6 +94,8 @@ export function TabNavigation({ isMobile = false, onNavigate }: TabNavigationPro
     onNavigate?.();
   };
 
+  const mainTabsToShow = getMainTabs(user?.role);
+
   // Mobile bottom navigation
   if (isMobile) {
     return (
@@ -109,7 +104,7 @@ export function TabNavigation({ isMobile = false, onNavigate }: TabNavigationPro
         role="navigation"
         aria-label="Main navigation"
       >
-        {mainTabs.map((tab) => {
+        {mainTabsToShow.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeMainTab === tab.value;
           return (
@@ -141,7 +136,7 @@ export function TabNavigation({ isMobile = false, onNavigate }: TabNavigationPro
         {/* Main Tabs */}
         <Tabs value={activeMainTab} onValueChange={handleMainTabChange}>
           <TabsList className="h-12 bg-transparent border-0 rounded-none p-0 gap-4 sm:gap-6">
-            {mainTabs.map((tab) => (
+            {mainTabsToShow.map((tab) => (
               <TabsTrigger
                 key={tab.value}
                 value={tab.value}

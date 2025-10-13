@@ -1,6 +1,6 @@
 import type {
   User, Post, Comment, Reaction, Event, EventRegistration,
-  Goal, GoalEntry, Session, InboxDraft, MetricSnapshot
+  Goal, GoalEntry, Session, InboxDraft, MetricSnapshot, Purchase, Membership, ClientProgress
 } from './types';
 
 const now = new Date();
@@ -281,5 +281,68 @@ export const seedClientProgress: ClientProgress[] = [
     completedThisWeek: 1,
     streak: 0,
     lastCheckIn: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+];
+
+// ==================== PURCHASES ====================
+export const seedPurchases: Purchase[] = [
+  {
+    id: 'purchase-1',
+    userId: 'user-client-1',
+    productId: 'product-training-1',
+    productName: 'Personal Training Package',
+    amount: 299,
+    source: 'whop',
+    status: 'paid',
+    purchasedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'purchase-2',
+    userId: 'user-client-2',
+    productId: 'product-membership-1',
+    productName: 'Monthly Membership',
+    amount: 99,
+    source: 'stripe',
+    status: 'paid',
+    purchasedAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'purchase-3',
+    userId: 'user-client-1',
+    productId: 'product-workshop-1',
+    productName: 'Nutrition Workshop',
+    amount: 50,
+    source: 'affiliate',
+    status: 'paid',
+    purchasedAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
+    isAffiliate: true,
+  },
+];
+
+// ==================== MEMBERSHIPS ====================
+export const seedMemberships: Membership[] = [
+  {
+    id: 'membership-1',
+    userId: 'user-client-1',
+    active: true,
+    startedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'membership-2',
+    userId: 'user-client-2',
+    active: true,
+    startedAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'membership-3',
+    userId: 'user-trainer-1',
+    active: true,
+    startedAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'membership-4',
+    userId: 'user-owner-1',
+    active: true,
+    startedAt: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString(),
   },
 ];

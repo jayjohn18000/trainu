@@ -3,12 +3,12 @@
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
 import type {
   User, Post, Comment, Reaction, Event, EventRegistration,
-  Goal, GoalEntry, Session, InboxDraft, ClientProgress
+  Goal, GoalEntry, Session, InboxDraft, ClientProgress, Purchase, Membership
 } from './types';
 import {
   seedUsers, seedPosts, seedComments, seedReactions, seedEvents,
   seedEventRegistrations, seedGoals, seedGoalEntries, seedSessions,
-  seedInboxDrafts, seedClientProgress
+  seedInboxDrafts, seedClientProgress, seedPurchases, seedMemberships
 } from './seed';
 
 // ==================== STATE TYPES ====================
@@ -25,6 +25,8 @@ interface MockState {
   sessions: Session[];
   inboxDrafts: InboxDraft[];
   clientProgress: ClientProgress[];
+  purchases: Purchase[];
+  memberships: Membership[];
   currentUser: User | null;
 }
 
@@ -38,8 +40,13 @@ type MockAction =
   | { type: 'ADD_GOAL_ENTRY'; payload: GoalEntry }
   | { type: 'UPDATE_GOAL_ENTRY'; payload: GoalEntry }
   | { type: 'UPDATE_SESSION'; payload: Session }
+  | { type: 'ADD_SESSION'; payload: Session }
   | { type: 'UPDATE_INBOX_DRAFT'; payload: InboxDraft }
   | { type: 'ADD_INBOX_DRAFT'; payload: InboxDraft }
+  | { type: 'ADD_PURCHASE'; payload: Purchase }
+  | { type: 'UPDATE_MEMBERSHIP'; payload: Membership }
+  | { type: 'UPDATE_USER'; payload: User }
+  | { type: 'UPDATE_CLIENT_PROGRESS'; payload: ClientProgress }
   | { type: 'RESET_DATA' }
   | { type: 'LOAD_DATA'; payload: MockState };
 
@@ -57,6 +64,8 @@ const initialState: MockState = {
   sessions: [],
   inboxDrafts: [],
   clientProgress: [],
+  purchases: [],
+  memberships: [],
   currentUser: null,
 };
 
@@ -114,6 +123,9 @@ function mockReducer(state: MockState, action: MockAction): MockState {
         )
       };
     
+    case 'ADD_SESSION':
+      return { ...state, sessions: [...state.sessions, action.payload] };
+    
     case 'UPDATE_INBOX_DRAFT':
       return {
         ...state,
@@ -124,6 +136,32 @@ function mockReducer(state: MockState, action: MockAction): MockState {
     
     case 'ADD_INBOX_DRAFT':
       return { ...state, inboxDrafts: [...state.inboxDrafts, action.payload] };
+    
+    case 'ADD_PURCHASE':
+      return { ...state, purchases: [...state.purchases, action.payload] };
+    
+    case 'UPDATE_MEMBERSHIP':
+      return {
+        ...state,
+        memberships: state.memberships.some(m => m.id === action.payload.id)
+          ? state.memberships.map(m => m.id === action.payload.id ? action.payload : m)
+          : [...state.memberships, action.payload]
+      };
+    
+    case 'UPDATE_USER':
+      return {
+        ...state,
+        users: state.users.map(u => u.id === action.payload.id ? action.payload : u),
+        currentUser: state.currentUser?.id === action.payload.id ? action.payload : state.currentUser
+      };
+    
+    case 'UPDATE_CLIENT_PROGRESS':
+      return {
+        ...state,
+        clientProgress: state.clientProgress.some(cp => cp.userId === action.payload.userId)
+          ? state.clientProgress.map(cp => cp.userId === action.payload.userId ? action.payload : cp)
+          : [...state.clientProgress, action.payload]
+      };
     
     case 'RESET_DATA':
       return {
@@ -139,6 +177,8 @@ function mockReducer(state: MockState, action: MockAction): MockState {
         sessions: seedSessions,
         inboxDrafts: seedInboxDrafts,
         clientProgress: seedClientProgress,
+        purchases: seedPurchases,
+        memberships: seedMemberships,
         currentUser: seedUsers[0], // Default to owner
       };
     

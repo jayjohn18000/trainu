@@ -205,7 +205,14 @@ export default function BetaInbox() {
                         {status === 'scheduled' && (
                           <Button
                             size="sm"
-                            onClick={() => handleStatusChange(draft, 'sent')}
+                            onClick={() => {
+                              const currentHour = new Date().getHours();
+                              const isQuietHours = currentHour >= 21 || currentHour < 7;
+                              if (isQuietHours) {
+                                alert('Outside quiet hours (9pm-7am) in demo. Message will queue for morning.');
+                              }
+                              handleStatusChange(draft, 'sent');
+                            }}
                             className="gap-1"
                           >
                             <Send className="h-3 w-3" />

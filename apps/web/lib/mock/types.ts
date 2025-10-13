@@ -93,8 +93,33 @@ export interface Session {
   clientId: string;
   date: string;
   time: string;
-  status: 'scheduled' | 'completed' | 'cancelled' | 'no_show';
+  status: 'scheduled' | 'completed' | 'cancelled' | 'no_show' | 'booked';
   type: string;
+}
+
+// ==================== PURCHASES & MEMBERSHIP ====================
+
+export type PurchaseSource = 'whop' | 'stripe' | 'affiliate';
+export type PurchaseStatus = 'paid' | 'pending' | 'refunded';
+
+export interface Purchase {
+  id: string;
+  userId: string;
+  productId: string;
+  productName: string;
+  amount: number;
+  source: PurchaseSource;
+  status: PurchaseStatus;
+  purchasedAt: string;
+  isAffiliate?: boolean;
+}
+
+export interface Membership {
+  id: string;
+  userId: string;
+  active: boolean;
+  startedAt: string;
+  expiresAt?: string;
 }
 
 export interface ClientProgress {

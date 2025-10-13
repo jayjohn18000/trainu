@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Menu, Settings } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
+import { MockProvider } from "@/lib/mock/store";
 
 interface BetaLayoutProps {
   children: ReactNode;
@@ -18,12 +19,14 @@ const betaNavItems = [
   { href: "/beta/inbox", label: "Inbox" },
   { href: "/beta/me", label: "Me" },
   { href: "/beta/dashboard/clients", label: "Clients" },
+  { href: "/beta/dev/smoke", label: "🧪 Smoke Test", isDev: true },
 ];
 
 export default function BetaLayout({ children }: BetaLayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
+    <MockProvider>
     <div className="min-h-screen flex flex-col w-full">
       {/* Skip to main content link for accessibility */}
       <a 
@@ -83,11 +86,21 @@ export default function BetaLayout({ children }: BetaLayoutProps) {
       <div className="hidden lg:block border-b border-border bg-background/95 backdrop-blur-sm">
         <nav className="mx-auto px-4 sm:px-6 max-w-screen-2xl" role="navigation" aria-label="Main navigation">
           <div className="flex space-x-8">
-            {betaNavItems.map((item) => (
+            {betaNavItems.filter(item => !(item as any).isDev).map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 className="py-4 px-1 border-b-2 border-transparent hover:border-primary transition-colors focus:outline-none focus:border-primary"
+                aria-current={typeof window !== 'undefined' && window.location.pathname === item.href ? 'page' : undefined}
+              >
+                {item.label}
+              </Link>
+            ))}
+            {betaNavItems.filter(item => (item as any).isDev).map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="py-4 px-1 border-b-2 border-transparent hover:border-primary transition-colors focus:outline-none focus:border-primary text-orange-600"
                 aria-current={typeof window !== 'undefined' && window.location.pathname === item.href ? 'page' : undefined}
               >
                 {item.label}
@@ -117,5 +130,6 @@ export default function BetaLayout({ children }: BetaLayoutProps) {
         </nav>
       </div>
     </div>
+    </MockProvider>
   );
 }

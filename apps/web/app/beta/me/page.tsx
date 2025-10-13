@@ -12,19 +12,24 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Calendar, Clock, Plus, Target, Trophy } from "lucide-react";
+import { Calendar, Clock, Plus, Target, Trophy, CheckCircle, XCircle } from "lucide-react";
 import { useMockStore } from "@/lib/mock/store";
 import { calculateStreak, calculateWeeklyProgress } from "@/lib/mock/metrics";
+import { mockBook, mockAttend, mockNoShow } from "@/lib/mock/api";
+import { useToast } from "@/components/ui/use-toast";
 import type { Session, Goal, GoalEntry, CheckInType, RPELevel } from "@/lib/mock/types";
 
 export default function BetaMe() {
   const { state, dispatch } = useMockStore();
+  const { toast } = useToast();
   const [nextSession, setNextSession] = useState<Session | null>(null);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [showCheckInDialog, setShowCheckInDialog] = useState(false);
+  const [showBookDialog, setShowBookDialog] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
   const [checkInType, setCheckInType] = useState<CheckInType>('completed');
   const [rpeLevel, setRPELevel] = useState<RPELevel>('right');
+  const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
     if (state.currentUser) {
@@ -62,8 +67,149 @@ export default function BetaMe() {
     };
 
     dispatch({ type: 'ADD_GOAL_ENTRY', payload: newEntry });
+    
+    // Update client progress
+    const currentProgress = state.clientProgress.find(cp => cp.userId === state.currentUser?.id);
+    if (currentProgress && checkInType === 'completed') {
+      dispatch({
+        type: 'UPDATE_CLIENT_PROGRESS',
+        payload: {
+          ...currentProgress,
+          completedThisWeek: currentProgress.completedThisWeek + 1,
+          lastCheckIn: new Date().toISOString(),
+        }
+      });
+    }
+
+    toast({
+      title: "Check-in Recorded",
+      description: `${checkInType} workout logged successfully`,
+    });
+
     setShowCheckInDialog(false);
     setSelectedGoal(null);
+  };
+
+  const handleBookSession = async () => {
+    if (!state.currentUser) return;
+    setProcessing(true);
+
+    try {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const result = await mockBook({
+        userId: state.currentUser.id,
+        trainerId: 'user-trainer-1',
+        date: tomorrow.toISOString().split('T')[0],
+        time: '10:00',
+        type: 'Personal Training',
+      });
+
+      dispatch({ type: 'ADD_SESSION', payload: result.session });
+      dispatch({ type: 'ADD_INBOX_DRAFT', payload: result.draft });
+
+      toast({
+        title: "Session Booked",
+        description: "Your session has been booked. Pre-session reminder created!",
+      });
+
+      setShowBookDialog(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to book session",
+        variant: "destructive",
+      });
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleMarkAttended = async () => {
+    if (!nextSession) return;
+    setProcessing(true);
+
+    try {
+      await mockAttend({ sessionId: nextSession.id });
+      
+      dispatch({
+        type: 'UPDATE_SESSION',
+        payload: { ...nextSession, status: 'completed' }
+      });
+
+      // Update progress
+      const currentProgress = state.clientProgress.find(cp => cp.userId === state.currentUser?.id);
+      if (currentProgress) {
+        dispatch({
+          type: 'UPDATE_CLIENT_PROGRESS',
+          payload: {
+            ...currentProgress,
+            completedThisWeek: currentProgress.completedThisWeek + 1,
+            streak: currentProgress.streak + 1,
+            lastCheckIn: new Date().toISOString(),
+          }
+        });
+      }
+
+      toast({
+        title: "Session Completed",
+        description: "Great job! Your attendance has been recorded.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to mark attended",
+        variant: "destructive",
+      });
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleMarkNoShow = async () => {
+    if (!nextSession || !state.currentUser) return;
+    setProcessing(true);
+
+    try {
+      const result = await mockNoShow({ sessionId: nextSession.id });
+      
+      dispatch({
+        type: 'UPDATE_SESSION',
+        payload: { ...nextSession, status: 'no_show' }
+      });
+
+      // Create recovery draft
+      const recoveryDraft = {
+        ...result.draft,
+        targetUserId: state.currentUser.id,
+      };
+      dispatch({ type: 'ADD_INBOX_DRAFT', payload: recoveryDraft });
+
+      // Reset streak
+      const currentProgress = state.clientProgress.find(cp => cp.userId === state.currentUser?.id);
+      if (currentProgress) {
+        dispatch({
+          type: 'UPDATE_CLIENT_PROGRESS',
+          payload: {
+            ...currentProgress,
+            streak: 0,
+          }
+        });
+      }
+
+      toast({
+        title: "Marked as No-Show",
+        description: "Recovery message created to help you get back on track.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to mark no-show",
+        variant: "destructive",
+      });
+    } finally {
+      setProcessing(false);
+    }
   };
 
   return (
@@ -74,9 +220,9 @@ export default function BetaMe() {
       </div>
 
       {/* Today Card */}
-      {nextSession && (
+      {nextSession ? (
         <Card className="p-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-primary/10 rounded-lg">
                 <Calendar className="h-6 w-6 text-primary" />
@@ -92,10 +238,41 @@ export default function BetaMe() {
                 </div>
               </div>
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm">Reschedule</Button>
-              <Button size="sm">Confirm</Button>
+            <div className="flex flex-wrap gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleMarkAttended}
+                disabled={processing}
+                className="gap-1"
+              >
+                <CheckCircle className="h-4 w-4" />
+                Mark Attended
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleMarkNoShow}
+                disabled={processing}
+                className="gap-1"
+              >
+                <XCircle className="h-4 w-4" />
+                No-Show
+              </Button>
             </div>
+          </div>
+        </Card>
+      ) : (
+        <Card className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold">No Upcoming Session</h3>
+              <p className="text-muted-foreground">Book a session to get started</p>
+            </div>
+            <Button onClick={() => setShowBookDialog(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Book Session
+            </Button>
           </div>
         </Card>
       )}
@@ -225,6 +402,34 @@ export default function BetaMe() {
               </Button>
               <Button onClick={handleCheckIn}>
                 Save Entry
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Book Session Dialog */}
+      <Dialog open={showBookDialog} onOpenChange={setShowBookDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Book a Session</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-muted-foreground">
+              Book a Personal Training session with Sarah Chen for tomorrow at 10:00 AM
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowBookDialog(false)}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleBookSession}
+                disabled={processing}
+              >
+                {processing ? 'Booking...' : 'Confirm Booking'}
               </Button>
             </div>
           </div>

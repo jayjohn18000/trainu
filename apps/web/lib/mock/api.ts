@@ -187,3 +187,164 @@ export async function generateSampleDrafts(): Promise<InboxDraft[]> {
     createdAt: new Date().toISOString(),
   }));
 }
+
+// ==================== MOCK ACTIONS ====================
+
+export interface MockPurchaseParams {
+  userId: string;
+  productName: string;
+  amount: number;
+  source?: 'whop' | 'stripe' | 'affiliate';
+  isAffiliate?: boolean;
+}
+
+export interface MockBookParams {
+  userId: string;
+  trainerId: string;
+  date: string;
+  time: string;
+  type: string;
+}
+
+export interface MockAttendParams {
+  sessionId: string;
+}
+
+export interface AffiliatePurchaseRow {
+  userId: string;
+  productName: string;
+  amount: number;
+  date: string;
+}
+
+export async function mockPurchase(params: MockPurchaseParams) {
+  await mockDelay();
+  
+  const purchase = {
+    id: `purchase-${Date.now()}`,
+    userId: params.userId,
+    productId: `product-${Date.now()}`,
+    productName: params.productName,
+    amount: params.amount,
+    source: params.source || 'whop',
+    status: 'paid' as const,
+    purchasedAt: new Date().toISOString(),
+    isAffiliate: params.isAffiliate || false,
+  };
+
+  // Also create/update membership
+  const membership = {
+    id: `membership-${params.userId}`,
+    userId: params.userId,
+    active: true,
+    startedAt: new Date().toISOString(),
+  };
+
+  // Generate Welcome draft
+  const welcomeDraft: Omit<InboxDraft, 'id' | 'createdAt'> = {
+    triggerType: 'welcome',
+    targetUserId: params.userId,
+    subject: 'Welcome to TrainU!',
+    previewText: `Welcome! We're excited to have you on board...`,
+    fullContent: `Welcome to TrainU! We're excited to have you on board. Your journey to better fitness starts now! You've purchased: ${params.productName}`,
+    status: 'needs_review',
+  };
+
+  const draft = {
+    ...welcomeDraft,
+    id: `draft-${Date.now()}`,
+    createdAt: new Date().toISOString(),
+  };
+
+  return { purchase, membership, draft };
+}
+
+export async function mockBook(params: MockBookParams) {
+  await mockDelay();
+  
+  const session = {
+    id: `session-${Date.now()}`,
+    trainerId: params.trainerId,
+    clientId: params.userId,
+    date: params.date,
+    time: params.time,
+    status: 'booked' as const,
+    type: params.type,
+  };
+
+  // Generate Pre-session draft (24h before)
+  const preSessionDate = new Date(params.date);
+  preSessionDate.setHours(preSessionDate.getHours() - 24);
+  
+  const preSessionDraft: Omit<InboxDraft, 'id' | 'createdAt'> = {
+    triggerType: 'pre_session',
+    targetUserId: params.userId,
+    subject: 'Your session is coming up!',
+    previewText: `Reminder: Your ${params.type} session is tomorrow...`,
+    fullContent: `Reminder: Your ${params.type} session is scheduled for ${params.date} at ${params.time}. Please arrive 10 minutes early!`,
+    status: 'needs_review',
+    scheduledFor: preSessionDate.toISOString(),
+  };
+
+  const draft = {
+    ...preSessionDraft,
+    id: `draft-${Date.now()}`,
+    createdAt: new Date().toISOString(),
+  };
+
+  return { session, draft };
+}
+
+export async function mockAttend(params: MockAttendParams) {
+  await mockDelay();
+  
+  return {
+    sessionId: params.sessionId,
+    status: 'completed' as const,
+    completedAt: new Date().toISOString(),
+  };
+}
+
+export async function mockNoShow(params: MockAttendParams) {
+  await mockDelay();
+  
+  // Generate No-show recovery draft
+  const recoveryDraft: Omit<InboxDraft, 'id' | 'createdAt'> = {
+    triggerType: 'no_show_recovery',
+    targetUserId: 'temp', // Will be filled by caller
+    subject: 'We missed you today',
+    previewText: 'We noticed you missed your session today...',
+    fullContent: 'We noticed you missed your session today. No worries - life happens! Let\'s reschedule and get back on track.',
+    status: 'needs_review',
+  };
+
+  const draft = {
+    ...recoveryDraft,
+    id: `draft-${Date.now()}`,
+    createdAt: new Date().toISOString(),
+  };
+
+  return {
+    sessionId: params.sessionId,
+    status: 'no_show' as const,
+    draft,
+  };
+}
+
+export async function mockAffiliateCsvImport(rows: AffiliatePurchaseRow[]) {
+  await mockDelay();
+  
+  const purchases = rows.map((row, idx) => ({
+    id: `purchase-affiliate-${Date.now()}-${idx}`,
+    userId: row.userId,
+    productId: `product-affiliate-${Date.now()}-${idx}`,
+    productName: row.productName,
+    amount: row.amount,
+    source: 'affiliate' as const,
+    status: 'paid' as const,
+    purchasedAt: row.date,
+    isAffiliate: true,
+  }));
+
+  return purchases;
+}
